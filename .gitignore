@@ -1,0 +1,14 @@
+.next/
+.codex-pnpm/
+.tools/
+.edge-profile/
+.edge-profile-mobile/
+node_modules/
+out/
+build/
+.env
+.env*.local
+*.tsbuildinfo
+vercel.json.local
+.devserver.*
+plebi-*.png

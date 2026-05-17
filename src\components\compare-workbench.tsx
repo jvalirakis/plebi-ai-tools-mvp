@@ -1,0 +1,181 @@
+"use client";
+
+import { Check, GitCompareArrows, Plus, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { MetricBars } from "@/components/metric-bars";
+import { ScoreRing } from "@/components/score-ring";
+import { getScoreBreakdown } from "@/lib/scoring";
+import type { MetricKey, Tool } from "@/lib/types";
+
+type CompareWorkbenchProps = {
+  tools: Tool[];
+};
+
+const comparisonRows: Array<{ key: MetricKey | "sourceSignal" | "pollSentiment"; label: string }> = [
+  { key: "capability", label: "Capability" },
+  { key: "usability", label: "Usability" },
+  { key: "reliability", label: "Reliability" },
+  { key: "value", label: "Value" },
+  { key: "adoption", label: "Adoption" },
+  { key: "sourceSignal", label: "Source Signal" },
+  { key: "pollSentiment", label: "Poll Sentiment" }
+];
+
+export function CompareWorkbench({ tools }: CompareWorkbenchProps) {
+  const rankedTools = useMemo(
+    () =>
+      tools
+        .map((tool) => ({ tool, score: getScoreBreakdown(tool).finalScore }))
+        .sort((a, b) => b.score - a.score)
+        .map(({ tool }) => tool),
+    [tools]
+  );
+  const [selectedSlugs, setSelectedSlugs] = useState<string[]>(rankedTools.slice(0, 3).map((tool) => tool.slug));
+
+  const selectedTools = selectedSlugs
+    .map((slug) => tools.find((tool) => tool.slug === slug))
+    .filter((tool): tool is Tool => Boolean(tool));
+
+  function addTool(slug: string) {
+    if (!slug || selectedSlugs.includes(slug) || selectedSlugs.length >= 4) {
+      return;
+    }
+
+    setSelectedSlugs((current) => [...current, slug]);
+  }
+
+  function removeTool(slug: string) {
+    setSelectedSlugs((current) => current.filter((selectedSlug) => selectedSlug !== slug));
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="surface rounded-md p-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-semibold">
+              <GitCompareArrows className="h-5 w-5 text-primary" />
+              Comparison Set
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">{selectedTools.length} tools selected</p>
+          </div>
+          <label className="flex w-full flex-col gap-2 sm:max-w-sm">
+            <span className="text-xs font-medium text-muted-foreground">Add tool</span>
+            <select
+              className="focus-ring h-11 rounded-md border border-border bg-background px-3 text-sm"
+              value=""
+              onChange={(event) => addTool(event.target.value)}
+            >
+              <option value="">Select a tool</option>
+              {rankedTools
+                .filter((tool) => !selectedSlugs.includes(tool.slug))
+                .map((tool) => (
+                  <option key={tool.slug} value={tool.slug}>
+                    {tool.name}
+                  </option>
+                ))}
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        {selectedTools.map((tool) => {
+          const breakdown = getScoreBreakdown(tool);
+          return (
+            <article key={tool.slug} className="surface rounded-md p-5">
+              <div className="mb-5 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">{tool.subcategory}</p>
+                  <h3 className="mt-1 text-xl font-semibold">{tool.name}</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeTool(tool.slug)}
+                  className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:border-danger hover:text-danger"
+                  aria-label={`Remove ${tool.name}`}
+                  title={`Remove ${tool.name}`}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="mb-5 flex justify-center">
+                <ScoreRing score={breakdown.finalScore} />
+              </div>
+              <MetricBars metrics={breakdown} includeSignals />
+            </article>
+          );
+        })}
+      </div>
+
+      <div className="surface overflow-hidden rounded-md">
+        <div className="border-b border-border px-4 py-3">
+          <h2 className="text-base font-semibold">Decision Matrix</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
+              <tr>
+                <th className="px-4 py-3 font-medium">Metric</th>
+                {selectedTools.map((tool) => (
+                  <th key={tool.slug} className="px-4 py-3 font-medium">
+                    {tool.name}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {comparisonRows.map((row) => {
+                const rowValues = selectedTools.map((tool) => getScoreBreakdown(tool)[row.key]);
+                const bestValue = Math.max(...rowValues);
+                return (
+                  <tr key={row.key}>
+                    <td className="px-4 py-3 text-muted-foreground">{row.label}</td>
+                    {selectedTools.map((tool) => {
+                      const value = getScoreBreakdown(tool)[row.key];
+                      return (
+                        <td key={tool.slug} className="px-4 py-3">
+                          <span className="inline-flex items-center gap-2 font-mono tabular-nums">
+                            {value}
+                            {value === bestValue ? <Check className="h-4 w-4 text-success" /> : null}
+                          </span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+              <tr>
+                <td className="px-4 py-3 text-muted-foreground">Pricing</td>
+                {selectedTools.map((tool) => (
+                  <td key={tool.slug} className="px-4 py-3 text-muted-foreground">
+                    {tool.pricing}
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-muted-foreground">Best fit</td>
+                {selectedTools.map((tool) => (
+                  <td key={tool.slug} className="px-4 py-3 text-muted-foreground">
+                    {tool.summary}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {selectedSlugs.length < 4 ? (
+        <button
+          type="button"
+          onClick={() => addTool(rankedTools.find((tool) => !selectedSlugs.includes(tool.slug))?.slug ?? "")}
+          className="focus-ring inline-flex h-11 items-center gap-2 rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary"
+        >
+          <Plus className="h-4 w-4" />
+          Add next ranked tool
+        </button>
+      ) : null}
+    </div>
+  );
+}
