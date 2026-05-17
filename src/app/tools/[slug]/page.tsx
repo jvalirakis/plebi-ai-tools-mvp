@@ -14,13 +14,16 @@ type ToolPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export function generateStaticParams() {
-  return getTools().map((tool) => ({ slug: tool.slug }));
+export const dynamic = "force-dynamic";
+
+export async function generateStaticParams() {
+  const tools = await getTools();
+  return tools.map((tool) => ({ slug: tool.slug }));
 }
 
 export async function generateMetadata({ params }: ToolPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const tool = getToolBySlug(slug);
+  const tool = await getToolBySlug(slug);
 
   return {
     title: tool ? `${tool.name} Score | Plebi` : "Tool | Plebi"
@@ -29,16 +32,16 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
 
 export default async function ToolPage({ params }: ToolPageProps) {
   const { slug } = await params;
-  const tool = getToolBySlug(slug);
+  const tool = await getToolBySlug(slug);
 
   if (!tool) {
     notFound();
   }
 
-  const category = getCategories().find((item) => item.slug === tool.categorySlug);
+  const [categories, relatedTools] = await Promise.all([getCategories(), getRelatedTools(tool.slug)]);
+  const category = categories.find((item) => item.slug === tool.categorySlug);
   const breakdown = getScoreBreakdown(tool);
   const confidence = getConfidenceLevel(tool);
-  const relatedTools = getRelatedTools(tool.slug);
 
   return (
     <div className="space-y-6">

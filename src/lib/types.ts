@@ -36,9 +36,18 @@ export type SourceObservation = {
 };
 
 export type Poll = {
+  id?: string;
   toolId: string;
   votesFor: number;
   votesAgainst: number;
+};
+
+export type PollVote = {
+  id: string;
+  pollId: string;
+  userId: string | null;
+  vote: "for" | "against";
+  createdAt: string;
 };
 
 export type ScoreSnapshot = {

@@ -8,13 +8,16 @@ type CategoryPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export function generateStaticParams() {
-  return getCategories().map((category) => ({ slug: category.slug }));
+export const dynamic = "force-dynamic";
+
+export async function generateStaticParams() {
+  const categories = await getCategories();
+  return categories.map((category) => ({ slug: category.slug }));
 }
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
+  const category = await getCategoryBySlug(slug);
 
   return {
     title: category ? `${category.name} Rankings | Plebi` : "Category | Plebi"
@@ -23,13 +26,13 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
+  const category = await getCategoryBySlug(slug);
 
   if (!category) {
     notFound();
   }
 
-  const rankedTools = getRankedTools(category.slug);
+  const rankedTools = await getRankedTools(category.slug);
 
   return (
     <div className="space-y-6">

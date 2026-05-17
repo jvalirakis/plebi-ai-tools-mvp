@@ -21,4 +21,6 @@ Create `.env.local` from `.env.example` when connecting Supabase.
 
 ## Supabase
 
-The UI runs from deterministic seed data in `src/lib/seed.ts`. The production-ready schema lives in `supabase/schema.sql` and matches the MVP entities: categories, tools, sources, observations, score snapshots, polls, votes, and admin profiles.
+The UI reads from Supabase when `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are configured and table rows exist. Empty states safely fall back to deterministic data in `src/lib/seed.ts`.
+
+Apply `supabase/schema.sql`, then run `supabase/seed.sql` to load the MVP dataset: 40 tools, 8 categories, sources, observations, score snapshots, and polls. Poll votes insert into `poll_votes`; enable Supabase anonymous sign-ins if public voting should work without a separate sign-in flow.

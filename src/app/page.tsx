@@ -6,9 +6,10 @@ import { ToolCard } from "@/components/tool-card";
 import { getCategories, getRankedTools } from "@/lib/repository";
 import { scoreFormula } from "@/lib/scoring";
 
-export default function HomePage() {
-  const categories = getCategories();
-  const rankedTools = getRankedTools();
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const [categories, rankedTools] = await Promise.all([getCategories(), getRankedTools()]);
   const topTools = rankedTools.slice(0, 5);
   const averageTopScore = Math.round(topTools.reduce((total, tool) => total + tool.score, 0) / topTools.length);
 

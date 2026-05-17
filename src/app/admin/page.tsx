@@ -6,12 +6,16 @@ export const metadata: Metadata = {
   title: "Admin Dashboard | Plebi"
 };
 
-export default function AdminPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminPage() {
+  const [categories, tools, sources] = await Promise.all([getCategories(), getTools(), getSources()]);
+
   return (
     <AdminDashboard
-      categories={getCategories()}
-      tools={getTools()}
-      sources={getSources()}
+      categories={categories}
+      tools={tools}
+      sources={sources}
       configured={isSupabaseConfigured()}
     />
   );

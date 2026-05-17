@@ -6,7 +6,11 @@ export const metadata: Metadata = {
   title: "Compare AI Tools | Plebi"
 };
 
-export default function ComparePage() {
+export const dynamic = "force-dynamic";
+
+export default async function ComparePage() {
+  const tools = await getTools();
+
   return (
     <div className="space-y-6">
       <section className="surface rounded-md p-6 sm:p-8">
@@ -15,7 +19,7 @@ export default function ComparePage() {
           Evaluate leaders side by side across Plebi Score inputs, pricing, fit, and source-backed confidence.
         </p>
       </section>
-      <CompareWorkbench tools={getTools()} />
+      <CompareWorkbench tools={tools} />
     </div>
   );
 }
