@@ -10,7 +10,7 @@ type AuthPanelProps = {
 
 export function AuthPanel({ configured }: AuthPanelProps) {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<string | null>(configured ? null : "Seed mode: Supabase env vars are not set.");
+  const [status, setStatus] = useState<string | null>(configured ? null : "Supabase env vars are not set.");
 
   async function signIn() {
     if (!configured) {
@@ -39,7 +39,7 @@ export function AuthPanel({ configured }: AuthPanelProps) {
           </p>
         </div>
         <span className={`rounded-md px-2 py-1 text-xs ${configured ? "bg-primary text-primary-foreground" : "chip text-muted-foreground"}`}>
-          {configured ? "Connected" : "Seed mode"}
+          {configured ? "Connected" : "Not connected"}
         </span>
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">

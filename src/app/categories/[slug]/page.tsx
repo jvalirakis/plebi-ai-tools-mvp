@@ -3,10 +3,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ToolCard } from "@/components/tool-card";
 import { getCategories, getCategoryBySlug, getRankedTools } from "@/lib/repository";
+import type { Tool } from "@/lib/types";
 
 type CategoryPageProps = {
   params: Promise<{ slug: string }>;
 };
+
+type RankedTool = Tool & { score: number };
+
+function pickBy(tools: RankedTool[], score: (tool: RankedTool) => number) {
+  return tools.slice().sort((a, b) => score(b) - score(a))[0];
+}
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +40,16 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   }
 
   const rankedTools = await getRankedTools(category.slug);
+  const categoryLabels = [
+    { label: "Best overall", tool: rankedTools[0] },
+    { label: "Best value", tool: pickBy(rankedTools, (tool) => tool.metrics.value) },
+    { label: "Best for teams", tool: pickBy(rankedTools, (tool) => tool.metrics.usability + tool.metrics.adoption + (tool.stage === "Established" ? 8 : 0)) },
+    { label: "Best for beginners", tool: pickBy(rankedTools, (tool) => tool.metrics.usability) },
+    {
+      label: "Best enterprise-ready",
+      tool: pickBy(rankedTools, (tool) => tool.metrics.reliability + tool.metrics.adoption + (tool.stage === "Established" ? 10 : 0))
+    }
+  ].filter((item): item is { label: string; tool: RankedTool } => Boolean(item.tool));
 
   return (
     <div className="space-y-6">
@@ -59,6 +76,20 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             <p className="mt-2 text-sm leading-6">{category.benchmark}</p>
           </div>
         </div>
+      </section>
+
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+        {categoryLabels.map((item) => (
+          <Link
+            key={item.label}
+            href={`/tools/${item.tool.slug}`}
+            className="surface focus-ring rounded-md p-4 transition hover:border-primary"
+          >
+            <p className="text-xs font-medium text-muted-foreground">{item.label}</p>
+            <p className="mt-2 text-base font-semibold">{item.tool.name}</p>
+            <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">{item.tool.bestFor}</p>
+          </Link>
+        ))}
       </section>
 
       <section className="surface overflow-hidden rounded-md">

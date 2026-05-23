@@ -21,20 +21,48 @@ export function SourceObservations({ observations }: SourceObservationsProps) {
                 </span>
               </span>
               <span className="flex shrink-0 items-center gap-3">
-                <span className="font-mono text-sm tabular-nums">{observation.score}</span>
+                <span className="font-mono text-sm tabular-nums">{observation.score}%</span>
                 <ChevronDown className="h-4 w-4 text-muted-foreground transition group-open:rotate-180" />
               </span>
             </summary>
             <div className="border-t border-border px-4 py-3">
-              <div className="mb-3 flex flex-wrap gap-2">
-                <span className="chip rounded-md px-2 py-1 text-xs capitalize text-muted-foreground">
-                  {observation.sourceType}
-                </span>
-                <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">
-                  Confidence {(observation.confidence * 100).toFixed(0)}%
-                </span>
+              <div className="mb-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-md border border-border bg-background p-2">
+                  <span className="block">Source type</span>
+                  <span className="mt-1 block capitalize text-foreground">{observation.sourceType}</span>
+                </div>
+                <div className="rounded-md border border-border bg-background p-2">
+                  <span className="block">Normalized score</span>
+                  <span className="mt-1 block font-mono text-foreground tabular-nums">{observation.score}%</span>
+                </div>
+                <div className="rounded-md border border-border bg-background p-2">
+                  <span className="block">Confidence</span>
+                  <span className="mt-1 block font-mono text-foreground tabular-nums">{(observation.confidence * 100).toFixed(0)}%</span>
+                </div>
+                <div className="rounded-md border border-border bg-background p-2">
+                  <span className="block">Weight</span>
+                  <span className="mt-1 block font-mono text-foreground tabular-nums">
+                    {observation.sourceWeight ? `${(observation.sourceWeight * 100).toFixed(0)}%` : "N/A"}
+                  </span>
+                </div>
               </div>
-              <p className="text-sm leading-6 text-muted-foreground">{observation.notes}</p>
+              <div className="mb-3 flex flex-wrap gap-2">
+                <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">Observed {observation.observedAt}</span>
+                {observation.sourceUrl ? (
+                  <a
+                    href={observation.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="chip rounded-md px-2 py-1 text-xs text-primary hover:underline"
+                  >
+                    Evidence URL
+                  </a>
+                ) : null}
+              </div>
+              <p className="text-sm leading-6 text-muted-foreground">
+                <span className="font-medium text-foreground">Note: </span>
+                {observation.notes}
+              </p>
             </div>
           </details>
         ))}

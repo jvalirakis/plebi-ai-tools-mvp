@@ -2,7 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { MetricBars } from "@/components/metric-bars";
 import { ScoreRing } from "@/components/score-ring";
-import { getConfidenceLevel, getScoreBreakdown } from "@/lib/scoring";
+import { getConfidenceLevel, getRankExplanation, getScoreBreakdown } from "@/lib/scoring";
 import type { Tool } from "@/lib/types";
 
 type ToolCardProps = {
@@ -32,6 +32,16 @@ export function ToolCard({ tool, rank, compact = false }: ToolCardProps) {
             <ArrowUpRight className="h-4 w-4 text-muted-foreground transition group-hover:text-primary" />
           </Link>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{tool.tagline}</p>
+          <p className="mt-3 max-w-3xl text-sm leading-6">
+            <span className="font-medium text-foreground">Best for: </span>
+            <span className="text-muted-foreground">{tool.bestFor}</span>
+          </p>
+          {!compact ? (
+            <p className="mt-3 max-w-3xl rounded-md border border-border bg-background p-3 text-sm leading-6 text-muted-foreground">
+              <span className="font-medium text-foreground">Why this rank? </span>
+              {getRankExplanation(tool)}
+            </p>
+          ) : null}
           {!compact ? (
             <div className="mt-4 max-w-2xl">
               <MetricBars metrics={tool.metrics} />
