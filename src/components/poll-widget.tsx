@@ -87,7 +87,7 @@ export function PollWidget({ poll }: PollWidgetProps) {
   }
 
   return (
-    <div className="rounded-md border border-border bg-card p-4">
+    <div className="surface rounded-md p-5">
       <div className="mb-4 flex items-center justify-between gap-4">
         <div>
           <h3 className="text-sm font-semibold">User Poll</h3>

@@ -6,6 +6,14 @@ type SourceObservationsProps = {
 };
 
 export function SourceObservations({ observations }: SourceObservationsProps) {
+  if (!observations.length) {
+    return (
+      <div className="rounded-md border border-dashed border-border bg-background p-6 text-sm leading-6 text-muted-foreground">
+        No source observations are attached yet. Add manual evidence in the admin intake workflow to make this score auditable.
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       {observations

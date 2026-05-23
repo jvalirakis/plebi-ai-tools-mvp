@@ -54,8 +54,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   ].filter((item): item is { label: string; tool: RankedTool } => Boolean(item.tool));
 
   return (
-    <div className="space-y-6">
-      <section className="surface rounded-md p-6 sm:p-8">
+    <div className="space-y-7">
+      <section className="surface rounded-md p-6 sm:p-8 lg:p-10">
         <div className="mb-4 flex flex-wrap gap-2">
           {category.subcategories.map((subcategory) => (
             <span key={subcategory} className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">
@@ -68,11 +68,16 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             <Link href="/" className="text-sm text-primary">
               Directory
             </Link>
-            <h1 className="mt-3 text-4xl font-semibold">{category.name}</h1>
+            <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">{category.name}</h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">{category.description}</p>
-            <p className="mt-5 inline-flex rounded-md border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
-              Last refreshed: {refreshLabel}
-            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <p className="inline-flex rounded-md border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
+                Last refreshed: {refreshLabel}
+              </p>
+              <p className="inline-flex rounded-md border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
+                {rankedTools.length} ranked tools
+              </p>
+            </div>
           </div>
           <div className="rounded-md border border-border bg-background p-4">
             <p className="text-xs text-muted-foreground">Market signal</p>
@@ -83,27 +88,35 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         </div>
       </section>
 
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-        {categoryLabels.map((item) => (
-          <Link
-            key={item.label}
-            href={`/tools/${item.tool.slug}`}
-            className="surface focus-ring rounded-md p-4 transition hover:border-primary"
-          >
-            <p className="text-xs font-medium text-muted-foreground">{item.label}</p>
-            <p className="mt-2 text-base font-semibold">{item.tool.name}</p>
-            <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">{item.tool.bestFor}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(item.tool.freshnessStatus)}`}>
-                {freshnessLabels[item.tool.freshnessStatus]}
-              </span>
-              <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(item.tool.evidenceStatus)}`}>
-                {evidenceLabels[item.tool.evidenceStatus]}
-              </span>
-            </div>
-          </Link>
-        ))}
-      </section>
+      {categoryLabels.length ? (
+        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          {categoryLabels.map((item) => (
+            <Link
+              key={item.label}
+              href={`/tools/${item.tool.slug}`}
+              className="surface focus-ring rounded-md p-4 transition hover:border-primary"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-xs font-medium uppercase text-muted-foreground">{item.label}</p>
+                <p className="font-mono text-sm font-semibold tabular-nums">{item.tool.score}%</p>
+              </div>
+              <p className="mt-3 text-base font-semibold">{item.tool.name}</p>
+              <div className="mt-3 rounded-md border border-border bg-background px-3 py-2">
+                <p className="text-[11px] font-medium uppercase text-muted-foreground">Best for</p>
+                <p className="mt-1 line-clamp-3 text-xs leading-5 text-muted-foreground">{item.tool.bestFor}</p>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(item.tool.freshnessStatus)}`}>
+                  {freshnessLabels[item.tool.freshnessStatus]}
+                </span>
+                <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(item.tool.evidenceStatus)}`}>
+                  {evidenceLabels[item.tool.evidenceStatus]}
+                </span>
+              </div>
+            </Link>
+          ))}
+        </section>
+      ) : null}
 
       <CategoryRankings rankedTools={rankedTools} />
     </div>

@@ -24,7 +24,7 @@ export function MetricBars({ metrics, includeSignals = false }: MetricBarsProps)
   return (
     <div className="space-y-3">
       {[...metricRows, ...signalRows].map((metric) => (
-        <div key={metric.key} className="grid grid-cols-[116px_1fr_42px] items-center gap-3 text-sm">
+        <div key={metric.key} className="grid grid-cols-[minmax(86px,116px)_1fr_42px] items-center gap-3 text-sm">
           <span className="truncate text-muted-foreground">{metric.label}</span>
           <span className="h-2 overflow-hidden rounded-full bg-muted">
             <span
