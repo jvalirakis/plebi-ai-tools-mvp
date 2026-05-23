@@ -41,6 +41,9 @@ export type Database = {
           pricing: string;
           founded: string;
           stage: string;
+          last_verified_at: string | null;
+          freshness_status: "current" | "needs_review" | "stale" | "seed_only";
+          evidence_status: "source_verified" | "partially_verified" | "manual_seed" | "insufficient_evidence";
           metrics: Json;
           created_at: string;
         };
@@ -57,6 +60,9 @@ export type Database = {
           pricing: string;
           founded: string;
           stage: string;
+          last_verified_at?: string | null;
+          freshness_status?: "current" | "needs_review" | "stale" | "seed_only";
+          evidence_status?: "source_verified" | "partially_verified" | "manual_seed" | "insufficient_evidence";
           metrics: Json;
           created_at?: string;
         };
@@ -95,6 +101,7 @@ export type Database = {
           score: number;
           confidence: number;
           metric_impacts: Json;
+          evidence_url: string | null;
           notes: string;
           created_at: string;
         };
@@ -107,6 +114,7 @@ export type Database = {
           score: number;
           confidence: number;
           metric_impacts?: Json;
+          evidence_url?: string | null;
           notes: string;
           created_at?: string;
         };
@@ -118,6 +126,7 @@ export type Database = {
           id: string;
           tool_id: string;
           captured_at: string;
+          snapshot_date: string;
           score: number;
           reason: string;
           created_at: string;
@@ -126,6 +135,7 @@ export type Database = {
           id?: string;
           tool_id: string;
           captured_at: string;
+          snapshot_date?: string;
           score: number;
           reason: string;
           created_at?: string;

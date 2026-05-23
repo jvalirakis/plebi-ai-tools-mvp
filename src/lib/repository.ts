@@ -3,7 +3,18 @@ import { categories as seedCategories, sources as seedSources, tools as seedTool
 import { getScoreBreakdown } from "@/lib/scoring";
 import { getSupabaseDataClient } from "@/lib/supabase/data-client";
 import type { Database, Json } from "@/lib/supabase/types";
-import type { Category, MetricBreakdown, Poll, PollVote, ScoreSnapshot, Source, SourceObservation, Tool } from "@/lib/types";
+import type {
+  Category,
+  EvidenceStatus,
+  FreshnessStatus,
+  MetricBreakdown,
+  Poll,
+  PollVote,
+  ScoreSnapshot,
+  Source,
+  SourceObservation,
+  Tool
+} from "@/lib/types";
 
 type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
 type SourceRow = Database["public"]["Tables"]["sources"]["Row"];
@@ -15,6 +26,8 @@ type PollVoteRow = Database["public"]["Tables"]["poll_votes"]["Row"];
 const metricKeys = ["capability", "usability", "reliability", "value", "adoption"] as const;
 const sourceTypes: Source["type"][] = ["benchmark", "review", "community", "pricing", "security"];
 const stages: Tool["stage"][] = ["Emerging", "Scaling", "Established"];
+const freshnessStatuses: FreshnessStatus[] = ["current", "needs_review", "stale", "seed_only"];
+const evidenceStatuses: EvidenceStatus[] = ["source_verified", "partially_verified", "manual_seed", "insufficient_evidence"];
 const seedToolBySlug = new Map(seedTools.map((tool) => [tool.slug, tool]));
 const seedObservations = seedTools.flatMap((tool) => tool.observations);
 const seedSnapshots = seedTools.flatMap((tool) => tool.scoreSnapshots);
@@ -62,6 +75,14 @@ function toSourceType(value: string): Source["type"] {
 
 function toStage(value: string): Tool["stage"] {
   return stages.includes(value as Tool["stage"]) ? (value as Tool["stage"]) : "Emerging";
+}
+
+function toFreshnessStatus(value: string | null | undefined): FreshnessStatus {
+  return freshnessStatuses.includes(value as FreshnessStatus) ? (value as FreshnessStatus) : "seed_only";
+}
+
+function toEvidenceStatus(value: string | null | undefined): EvidenceStatus {
+  return evidenceStatuses.includes(value as EvidenceStatus) ? (value as EvidenceStatus) : "manual_seed";
 }
 
 async function readCategoryRows() {
@@ -175,6 +196,7 @@ function mapObservation(row: SourceObservationRow, sourceById: Map<string, Sourc
     sourceType: source?.type ?? "benchmark",
     sourceUrl: source?.url,
     sourceWeight: source?.weight,
+    evidenceUrl: row.evidence_url,
     title: row.title,
     observedAt: row.observed_at,
     score: row.score,
@@ -189,6 +211,7 @@ function mapSnapshot(row: ScoreSnapshotRow): ScoreSnapshot {
     id: row.id,
     toolId: row.tool_id,
     capturedAt: row.captured_at,
+    snapshotDate: row.snapshot_date ?? row.captured_at,
     score: row.score,
     reason: row.reason
   };
@@ -232,7 +255,8 @@ function adaptSeedObservations(tool: Tool, toolId: string, sourceByName: Map<str
       toolId,
       sourceId: source?.id ?? observation.sourceId,
       sourceUrl: source?.url ?? observation.sourceUrl,
-      sourceWeight: source?.weight ?? observation.sourceWeight
+      sourceWeight: source?.weight ?? observation.sourceWeight,
+      evidenceUrl: observation.evidenceUrl ?? null
     };
   });
 }
@@ -241,7 +265,8 @@ function adaptSeedSnapshots(tool: Tool, toolId: string) {
   return tool.scoreSnapshots.map((snapshot) => ({
     ...snapshot,
     id: `${toolId}-${snapshot.id}`,
-    toolId
+    toolId,
+    snapshotDate: snapshot.snapshotDate ?? snapshot.capturedAt
   }));
 }
 
@@ -325,6 +350,9 @@ export const getToolRecords = cache(async (): Promise<Tool[]> => {
       pricing: row.pricing,
       founded: row.founded,
       stage: toStage(row.stage),
+      lastVerifiedAt: row.last_verified_at,
+      freshnessStatus: toFreshnessStatus(row.freshness_status),
+      evidenceStatus: toEvidenceStatus(row.evidence_status),
       metrics: toMetricBreakdown(row.metrics),
       poll: poll ?? (seedTool ? adaptSeedPoll(seedTool, row.id) : { toolId: row.id, votesFor: 0, votesAgainst: 0 }),
       observations: observations?.length ? observations : seedTool ? adaptSeedObservations(seedTool, row.id, sourceByName) : [],

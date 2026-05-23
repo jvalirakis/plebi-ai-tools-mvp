@@ -2,6 +2,10 @@ export type MetricKey = "capability" | "usability" | "reliability" | "value" | "
 
 export type MetricBreakdown = Record<MetricKey, number>;
 
+export type FreshnessStatus = "current" | "needs_review" | "stale" | "seed_only";
+
+export type EvidenceStatus = "source_verified" | "partially_verified" | "manual_seed" | "insufficient_evidence";
+
 export type Category = {
   id: string;
   slug: string;
@@ -29,6 +33,7 @@ export type SourceObservation = {
   sourceType: Source["type"];
   sourceUrl?: string;
   sourceWeight?: number;
+  evidenceUrl?: string | null;
   title: string;
   observedAt: string;
   score: number;
@@ -56,6 +61,7 @@ export type ScoreSnapshot = {
   id: string;
   toolId: string;
   capturedAt: string;
+  snapshotDate: string;
   score: number;
   reason: string;
 };
@@ -73,6 +79,9 @@ export type Tool = {
   pricing: string;
   founded: string;
   stage: "Emerging" | "Scaling" | "Established";
+  lastVerifiedAt: string | null;
+  freshnessStatus: FreshnessStatus;
+  evidenceStatus: EvidenceStatus;
   metrics: MetricBreakdown;
   poll: Poll;
   observations: SourceObservation[];

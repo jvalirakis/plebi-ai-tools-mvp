@@ -1,4 +1,5 @@
 import type { MetricBreakdown, MetricKey, ScoreBreakdown, SourceObservation, Tool } from "@/lib/types";
+import { evidenceLabels, freshnessLabels } from "@/lib/status";
 
 export const metricLabels: Record<MetricKey, string> = {
   capability: "Capability",
@@ -86,8 +87,14 @@ export function getTopMetric(metrics: MetricBreakdown) {
 export function getRankExplanation(tool: Tool) {
   const breakdown = getScoreBreakdown(tool);
   const topMetric = getTopMetric(tool.metrics);
+  const statusNote =
+    tool.freshnessStatus === "current" && tool.evidenceStatus === "source_verified"
+      ? "This ranking is marked current and source verified in the dataset."
+      : `This placement is marked ${freshnessLabels[tool.freshnessStatus].toLowerCase()} and ${evidenceLabels[
+          tool.evidenceStatus
+        ].toLowerCase()}, so treat it as a transparent dataset signal rather than current market consensus.`;
 
-  return `${tool.name} ranks here because ${topMetric.label.toLowerCase()} is its strongest structured metric at ${topMetric.score}%, supported by a ${breakdown.sourceSignal}% source signal and ${breakdown.pollSentiment}% community sentiment.`;
+  return `${tool.name} appears here because ${topMetric.label.toLowerCase()} is its strongest structured metric at ${topMetric.score}%, supported by a ${breakdown.sourceSignal}% source signal and ${breakdown.pollSentiment}% community sentiment. ${statusNote}`;
 }
 
 export function getConfidenceLevel(tool: Tool) {

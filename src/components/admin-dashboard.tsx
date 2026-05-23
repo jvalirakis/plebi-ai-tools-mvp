@@ -4,6 +4,7 @@ import { Database, FileClock, Layers3, Plus, Save, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AuthPanel } from "@/components/auth-panel";
 import { getScoreBreakdown } from "@/lib/scoring";
+import { evidenceLabels, freshnessLabels, statusClass } from "@/lib/status";
 import type { Category, Source, SourceObservation, Tool } from "@/lib/types";
 
 type AdminDashboardProps = {
@@ -37,6 +38,7 @@ export function AdminDashboard({ categories, tools, sources, configured }: Admin
   );
   const [editableSnapshots, setEditableSnapshots] = useState(tools.flatMap((tool) => tool.scoreSnapshots).slice(0, 16));
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  const reviewTools = tools.filter((tool) => tool.freshnessStatus === "stale" || tool.freshnessStatus === "needs_review");
 
   const dashboardStats = useMemo(
     () => [
@@ -66,6 +68,9 @@ export function AdminDashboard({ categories, tools, sources, configured }: Admin
         bestFor: "Teams evaluating a draft AI tool profile.",
         website: "https://example.com",
         pricing: "TBD",
+        lastVerifiedAt: null,
+        freshnessStatus: "needs_review",
+        evidenceStatus: "insufficient_evidence",
         poll: { toolId: `draft-tool-${current.length + 1}`, votesFor: 0, votesAgainst: 0 },
         observations: [],
         scoreSnapshots: []
@@ -96,6 +101,50 @@ export function AdminDashboard({ categories, tools, sources, configured }: Admin
         </div>
         <AuthPanel configured={configured} />
       </div>
+
+      {reviewTools.length ? (
+        <section className="surface rounded-md p-5">
+          <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-base font-semibold">Freshness Review Queue</h2>
+              <p className="text-sm text-muted-foreground">Tools marked stale or needs review before their rank should be treated as current.</p>
+            </div>
+            <span className="font-mono text-sm text-muted-foreground tabular-nums">{reviewTools.length} tools</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-muted text-left text-xs text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2 font-medium">Tool</th>
+                  <th className="px-3 py-2 font-medium">Category</th>
+                  <th className="px-3 py-2 font-medium">Freshness</th>
+                  <th className="px-3 py-2 font-medium">Evidence</th>
+                  <th className="px-3 py-2 font-medium">Last verified</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {reviewTools.map((tool) => (
+                  <tr key={tool.id}>
+                    <td className="px-3 py-2 font-medium">{tool.name}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{tool.categorySlug}</td>
+                    <td className="px-3 py-2">
+                      <span className={`inline-flex rounded-md border px-2 py-1 text-xs ${statusClass(tool.freshnessStatus)}`}>
+                        {freshnessLabels[tool.freshnessStatus]}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className={`inline-flex rounded-md border px-2 py-1 text-xs ${statusClass(tool.evidenceStatus)}`}>
+                        {evidenceLabels[tool.evidenceStatus]}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 font-mono text-muted-foreground tabular-nums">{tool.lastVerifiedAt ?? "Not verified"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
 
       <div className="surface rounded-md">
         <div className="flex flex-col gap-3 border-b border-border p-3 lg:flex-row lg:items-center lg:justify-between">

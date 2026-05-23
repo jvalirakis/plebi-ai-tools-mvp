@@ -5,6 +5,7 @@ import { ScoreRing } from "@/components/score-ring";
 import { ToolCard } from "@/components/tool-card";
 import { getCategories, getRankedTools } from "@/lib/repository";
 import { scoreFormula } from "@/lib/scoring";
+import { rankingDisclaimer } from "@/lib/status";
 
 export const dynamic = "force-dynamic";
 
@@ -12,16 +13,17 @@ export default async function HomePage() {
   const [categories, rankedTools] = await Promise.all([getCategories(), getRankedTools()]);
   const topTools = rankedTools.slice(0, 5);
   const averageTopScore = Math.round(topTools.reduce((total, tool) => total + tool.score, 0) / topTools.length);
+  const observationCount = rankedTools.reduce((total, tool) => total + tool.observations.length, 0);
 
   return (
     <div className="space-y-8">
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="surface rounded-md p-6 sm:p-8">
           <div className="mb-6 flex flex-wrap gap-2">
-            <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">40 AI tools</span>
-            <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">8 categories</span>
+            <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{rankedTools.length} AI tools</span>
+            <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{categories.length} categories</span>
             <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">Transparent scoring</span>
-            <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">80 scoring signals</span>
+            <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{observationCount} evidence signals</span>
           </div>
           <h1 className="max-w-4xl break-words text-3xl font-semibold leading-tight sm:text-5xl">
             AI tool rankings with evidence behind every score.
@@ -76,7 +78,7 @@ export default async function HomePage() {
       <section className="grid gap-4 md:grid-cols-3">
         {[
           { label: "Ranking Inputs", value: "5", detail: "source types", icon: ShieldCheck },
-          { label: "Scoring Signals", value: "80", detail: "structured observations", icon: BarChart3 },
+          { label: "Evidence Signals", value: String(observationCount), detail: "source observations", icon: BarChart3 },
           { label: "Poll System", value: "Live", detail: "community voting enabled", icon: TrendingUp }
         ].map((stat) => {
           const Icon = stat.icon;
@@ -109,7 +111,8 @@ export default async function HomePage() {
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
             <h2 className="text-2xl font-semibold">Market Leaders</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Highest current Plebi Scores across the tracked directory.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Highest Plebi Scores across the tracked directory, with freshness and evidence labels.</p>
+            <p className="mt-2 max-w-4xl text-xs leading-5 text-muted-foreground">{rankingDisclaimer}</p>
           </div>
           <Link href="/compare" className="hidden text-sm font-medium text-primary sm:inline">
             Compare all

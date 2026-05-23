@@ -3,6 +3,7 @@ import Link from "next/link";
 import { MetricBars } from "@/components/metric-bars";
 import { ScoreRing } from "@/components/score-ring";
 import { getConfidenceLevel, getRankExplanation, getScoreBreakdown } from "@/lib/scoring";
+import { evidenceLabels, freshnessLabels, statusClass } from "@/lib/status";
 import type { Tool } from "@/lib/types";
 
 type ToolCardProps = {
@@ -25,6 +26,12 @@ export function ToolCard({ tool, rank, compact = false }: ToolCardProps) {
             <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{tool.stage}</span>
             <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">
               Confidence {confidence}%
+            </span>
+            <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(tool.freshnessStatus)}`}>
+              {freshnessLabels[tool.freshnessStatus]}
+            </span>
+            <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(tool.evidenceStatus)}`}>
+              {evidenceLabels[tool.evidenceStatus]}
             </span>
           </div>
           <Link href={`/tools/${tool.slug}`} className="group inline-flex items-center gap-2">

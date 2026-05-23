@@ -9,6 +9,7 @@ import { SourceObservations } from "@/components/source-observations";
 import { ToolCard } from "@/components/tool-card";
 import { getCategories, getRelatedTools, getToolBySlug, getTools } from "@/lib/repository";
 import { getConfidenceLevel, getRankExplanation, getScoreBreakdown } from "@/lib/scoring";
+import { evidenceLabels, freshnessLabels, statusClass } from "@/lib/status";
 
 type ToolPageProps = {
   params: Promise<{ slug: string }>;
@@ -57,6 +58,12 @@ export default async function ToolPage({ params }: ToolPageProps) {
               <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{tool.subcategory}</span>
               <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{tool.stage}</span>
               <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">Confidence {confidence}%</span>
+              <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(tool.freshnessStatus)}`}>
+                {freshnessLabels[tool.freshnessStatus]}
+              </span>
+              <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(tool.evidenceStatus)}`}>
+                {evidenceLabels[tool.evidenceStatus]}
+              </span>
             </div>
             <h1 className="text-4xl font-semibold">{tool.name}</h1>
             <p className="mt-4 max-w-3xl text-lg leading-8 text-muted-foreground">{tool.tagline}</p>
@@ -144,7 +151,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
             <tbody className="divide-y divide-border">
               {tool.scoreSnapshots.map((snapshot) => (
                 <tr key={snapshot.id}>
-                  <td className="px-4 py-3 font-mono tabular-nums">{snapshot.capturedAt}</td>
+                  <td className="px-4 py-3 font-mono tabular-nums">{snapshot.snapshotDate}</td>
                   <td className="px-4 py-3 font-mono tabular-nums">{snapshot.score}%</td>
                   <td className="px-4 py-3 text-muted-foreground">{snapshot.reason}</td>
                 </tr>
