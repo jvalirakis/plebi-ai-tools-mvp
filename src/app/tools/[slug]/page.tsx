@@ -7,6 +7,7 @@ import { PollWidget } from "@/components/poll-widget";
 import { ScoreRing } from "@/components/score-ring";
 import { SourceObservations } from "@/components/source-observations";
 import { ToolCard } from "@/components/tool-card";
+import { getEvidenceQualitySummary } from "@/lib/evidence";
 import { getCategories, getRelatedTools, getToolBySlug, getTools } from "@/lib/repository";
 import { getConfidenceLevel, getRankExplanation, getScoreBreakdown } from "@/lib/scoring";
 import { evidenceLabels, freshnessLabels, statusClass } from "@/lib/status";
@@ -43,6 +44,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
   const category = categories.find((item) => item.slug === tool.categorySlug);
   const breakdown = getScoreBreakdown(tool);
   const confidence = getConfidenceLevel(tool);
+  const evidenceQuality = getEvidenceQualitySummary(tool);
 
   return (
     <div className="space-y-6">
@@ -120,6 +122,40 @@ export default async function ToolPage({ params }: ToolPageProps) {
           </div>
         </div>
         <PollWidget poll={tool.poll} />
+      </section>
+
+      <section className="surface rounded-md p-5">
+        <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold">Evidence quality</h2>
+            <p className="text-sm text-muted-foreground">Manual and source-backed observations currently attached to this tool.</p>
+          </div>
+          <span className={`inline-flex rounded-md border px-2 py-1 text-xs ${statusClass(tool.evidenceStatus)}`}>
+            {evidenceQuality.evidenceStatusLabel}
+          </span>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-md border border-border bg-background p-3">
+            <p className="text-xs text-muted-foreground">Sources</p>
+            <p className="mt-1 font-mono text-lg tabular-nums">{evidenceQuality.sourceCount}</p>
+          </div>
+          <div className="rounded-md border border-border bg-background p-3">
+            <p className="text-xs text-muted-foreground">Highest confidence</p>
+            <p className="mt-1 text-sm font-medium">
+              {evidenceQuality.highestConfidenceObservation
+                ? `${evidenceQuality.highestConfidenceObservation.sourceName} (${(evidenceQuality.highestConfidenceObservation.confidence * 100).toFixed(0)}%)`
+                : "No source yet"}
+            </p>
+          </div>
+          <div className="rounded-md border border-border bg-background p-3">
+            <p className="text-xs text-muted-foreground">Last observed</p>
+            <p className="mt-1 font-mono text-sm tabular-nums">{evidenceQuality.lastObservedAt ?? "No observations"}</p>
+          </div>
+          <div className="rounded-md border border-border bg-background p-3">
+            <p className="text-xs text-muted-foreground">Evidence status</p>
+            <p className="mt-1 text-sm font-medium">{evidenceQuality.evidenceStatusLabel}</p>
+          </div>
+        </div>
       </section>
 
       <section className="surface rounded-md p-5">

@@ -26,7 +26,11 @@ export function SourceObservations({ observations }: SourceObservationsProps) {
               </span>
             </summary>
             <div className="border-t border-border px-4 py-3">
-              <div className="mb-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
+              <div className="mb-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2 lg:grid-cols-5">
+                <div className="rounded-md border border-border bg-background p-2">
+                  <span className="block">Signal title</span>
+                  <span className="mt-1 block text-foreground">{observation.title}</span>
+                </div>
                 <div className="rounded-md border border-border bg-background p-2">
                   <span className="block">Source type</span>
                   <span className="mt-1 block capitalize text-foreground">{observation.sourceType}</span>
@@ -48,6 +52,16 @@ export function SourceObservations({ observations }: SourceObservationsProps) {
               </div>
               <div className="mb-3 flex flex-wrap gap-2">
                 <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">Observed {observation.observedAt}</span>
+                {observation.sourceUrl ? (
+                  <a
+                    href={observation.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="chip rounded-md px-2 py-1 text-xs text-primary hover:underline"
+                  >
+                    Source URL
+                  </a>
+                ) : null}
                 {observation.evidenceUrl ? (
                   <a
                     href={observation.evidenceUrl}
@@ -57,7 +71,9 @@ export function SourceObservations({ observations }: SourceObservationsProps) {
                   >
                     Evidence URL
                   </a>
-                ) : null}
+                ) : (
+                  <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">No evidence URL attached</span>
+                )}
               </div>
               <p className="text-sm leading-6 text-muted-foreground">
                 <span className="font-medium text-foreground">Note: </span>
