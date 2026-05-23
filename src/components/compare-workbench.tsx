@@ -1,15 +1,17 @@
 "use client";
 
-import { Check, GitCompareArrows, Plus, X } from "lucide-react";
+import { Check, GitCompareArrows, Plus, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { MetricBars } from "@/components/metric-bars";
 import { ScoreRing } from "@/components/score-ring";
+import { getCategoryName, getToolSearchText } from "@/lib/directory-filters";
 import { getScoreBreakdown } from "@/lib/scoring";
 import { evidenceLabels, freshnessLabels, statusClass } from "@/lib/status";
-import type { MetricKey, Tool } from "@/lib/types";
+import type { Category, MetricKey, Tool } from "@/lib/types";
 
 type CompareWorkbenchProps = {
+  categories: Category[];
   tools: Tool[];
 };
 
@@ -23,7 +25,8 @@ const comparisonRows: Array<{ key: MetricKey | "sourceSignal" | "pollSentiment";
   { key: "pollSentiment", label: "Poll Sentiment" }
 ];
 
-export function CompareWorkbench({ tools }: CompareWorkbenchProps) {
+export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
+  const [addSearch, setAddSearch] = useState("");
   const rankedTools = useMemo(
     () =>
       tools
@@ -37,6 +40,16 @@ export function CompareWorkbench({ tools }: CompareWorkbenchProps) {
   const selectedTools = selectedSlugs
     .map((slug) => tools.find((tool) => tool.slug === slug))
     .filter((tool): tool is Tool => Boolean(tool));
+  const addableTools = useMemo(
+    () =>
+      rankedTools.filter((tool) => {
+        const matchesSelection = !selectedSlugs.includes(tool.slug);
+        const matchesSearch = !addSearch.trim() || getToolSearchText(tool, getCategoryName(tool, categories)).includes(addSearch.trim().toLowerCase());
+
+        return matchesSelection && matchesSearch;
+      }),
+    [addSearch, categories, rankedTools, selectedSlugs]
+  );
 
   if (!tools.length) {
     return (
@@ -72,23 +85,33 @@ export function CompareWorkbench({ tools }: CompareWorkbenchProps) {
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">{selectedTools.length} tools selected</p>
           </div>
-          <label className="flex w-full flex-col gap-2 sm:max-w-sm">
-            <span className="text-xs font-medium text-muted-foreground">Add tool</span>
+          <div className="grid w-full gap-2 sm:max-w-lg">
+            <label className="relative block">
+              <span className="sr-only">Search tools to compare</span>
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={addSearch}
+                onChange={(event) => setAddSearch(event.target.value)}
+                placeholder="Search tools, category, pricing, fit..."
+                className="focus-ring h-11 w-full rounded-md border border-border bg-background pl-10 pr-3 text-sm"
+              />
+            </label>
+            <label className="flex flex-col gap-2">
+              <span className="text-xs font-medium text-muted-foreground">{addableTools.length} available matches</span>
             <select
               className="focus-ring h-11 rounded-md border border-border bg-background px-3 text-sm"
               value=""
               onChange={(event) => addTool(event.target.value)}
             >
               <option value="">Select a tool</option>
-              {rankedTools
-                .filter((tool) => !selectedSlugs.includes(tool.slug))
-                .map((tool) => (
-                  <option key={tool.slug} value={tool.slug}>
-                    {tool.name}
-                  </option>
-                ))}
+              {addableTools.map((tool) => (
+                <option key={tool.slug} value={tool.slug}>
+                  {tool.name}
+                </option>
+              ))}
             </select>
-          </label>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -204,8 +227,9 @@ export function CompareWorkbench({ tools }: CompareWorkbenchProps) {
       {selectedSlugs.length < 4 ? (
         <button
           type="button"
-          onClick={() => addTool(rankedTools.find((tool) => !selectedSlugs.includes(tool.slug))?.slug ?? "")}
-          className="focus-ring inline-flex h-11 items-center gap-2 rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary"
+          onClick={() => addTool(addableTools[0]?.slug ?? "")}
+          disabled={!addableTools.length}
+          className="focus-ring inline-flex h-11 items-center gap-2 rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Plus className="h-4 w-4" />
           Add next ranked tool

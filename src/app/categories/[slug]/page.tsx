@@ -118,7 +118,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         </section>
       ) : null}
 
-      <CategoryRankings rankedTools={rankedTools} />
+      <CategoryRankings rankedTools={rankedTools} categoryName={category.name} />
     </div>
   );
 }
