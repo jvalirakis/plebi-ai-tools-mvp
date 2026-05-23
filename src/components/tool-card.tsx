@@ -2,8 +2,8 @@ import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { MetricBars } from "@/components/metric-bars";
 import { ScoreRing } from "@/components/score-ring";
+import { StatusBadge, ToolIdentity } from "@/components/visual-identity";
 import { getConfidenceLevel, getRankExplanation, getScoreBreakdown } from "@/lib/scoring";
-import { evidenceLabels, freshnessLabels, statusClass } from "@/lib/status";
 import type { Tool } from "@/lib/types";
 
 type ToolCardProps = {
@@ -27,18 +27,19 @@ export function ToolCard({ tool, rank, compact = false }: ToolCardProps) {
             <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">
               Confidence {confidence}%
             </span>
-            <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(tool.freshnessStatus)}`}>
-              {freshnessLabels[tool.freshnessStatus]}
-            </span>
-            <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(tool.evidenceStatus)}`}>
-              {evidenceLabels[tool.evidenceStatus]}
-            </span>
+            <StatusBadge status={tool.freshnessStatus} />
+            <StatusBadge status={tool.evidenceStatus} />
           </div>
-          <Link href={`/tools/${tool.slug}`} className="group inline-flex items-center gap-2">
-            <h3 className="text-xl font-semibold">{tool.name}</h3>
-            <ArrowUpRight className="h-4 w-4 text-muted-foreground transition group-hover:text-primary" />
-          </Link>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{tool.tagline}</p>
+          <div className="flex items-start gap-3">
+            <ToolIdentity tool={tool} size={compact ? "sm" : "md"} />
+            <div className="min-w-0">
+              <Link href={`/tools/${tool.slug}`} className="group inline-flex items-center gap-2">
+                <h3 className="text-xl font-semibold">{tool.name}</h3>
+                <ArrowUpRight className="h-4 w-4 text-muted-foreground transition group-hover:text-primary" />
+              </Link>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{tool.tagline}</p>
+            </div>
+          </div>
           <div className="mt-4 max-w-3xl rounded-md border border-border bg-background px-3 py-2">
             <p className="text-xs font-medium uppercase text-muted-foreground">Best for</p>
             <p className="mt-1 text-sm leading-6">{tool.bestFor}</p>

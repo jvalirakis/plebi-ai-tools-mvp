@@ -1,4 +1,5 @@
 import { ChevronDown } from "lucide-react";
+import { EmptyStateVisual, SourceTypeIcon } from "@/components/visual-identity";
 import type { SourceObservation } from "@/lib/types";
 
 type SourceObservationsProps = {
@@ -8,8 +9,16 @@ type SourceObservationsProps = {
 export function SourceObservations({ observations }: SourceObservationsProps) {
   if (!observations.length) {
     return (
-      <div className="rounded-md border border-dashed border-border bg-background p-6 text-sm leading-6 text-muted-foreground">
-        No source observations are attached yet. Add manual evidence in the admin intake workflow to make this score auditable.
+      <div className="rounded-md border border-dashed border-border bg-background p-6">
+        <div className="flex gap-4">
+          <EmptyStateVisual kind="evidence" />
+          <div>
+            <p className="text-sm font-medium">No evidence yet</p>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              No source observations are attached yet. Add manual evidence in the admin intake workflow to make this score auditable.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -22,10 +31,13 @@ export function SourceObservations({ observations }: SourceObservationsProps) {
         .map((observation) => (
           <details key={observation.id} className="group rounded-md border border-border bg-card">
             <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3">
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-medium">{observation.sourceName}</span>
-                <span className="block truncate text-xs text-muted-foreground">
-                  {observation.title} / {observation.observedAt}
+              <span className="flex min-w-0 items-center gap-3">
+                <SourceTypeIcon type={observation.sourceType} />
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium">{observation.sourceName}</span>
+                  <span className="block truncate text-xs text-muted-foreground">
+                    {observation.title} / {observation.observedAt}
+                  </span>
                 </span>
               </span>
               <span className="flex shrink-0 items-center gap-3">

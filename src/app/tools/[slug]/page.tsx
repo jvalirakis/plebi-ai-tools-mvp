@@ -7,11 +7,12 @@ import { PollWidget } from "@/components/poll-widget";
 import { ScoreRing } from "@/components/score-ring";
 import { SourceObservations } from "@/components/source-observations";
 import { ToolCard } from "@/components/tool-card";
+import { CategoryVisual, StatusBadge, ToolIdentity } from "@/components/visual-identity";
 import { getDecisionSummary, getEvidenceCallout, shouldShowEvidenceCallout } from "@/lib/decision";
 import { getEvidenceQualitySummary } from "@/lib/evidence";
 import { getCategories, getRankedTools, getToolBySlug, getTools } from "@/lib/repository";
 import { getConfidenceLevel, getMetricModel, getRankExplanation, getScoreBreakdown } from "@/lib/scoring";
-import { evidenceLabels, freshnessLabels, statusClass } from "@/lib/status";
+import { evidenceLabels, freshnessLabels } from "@/lib/status";
 
 type ToolPageProps = {
   params: Promise<{ slug: string }>;
@@ -68,15 +69,16 @@ export default async function ToolPage({ params }: ToolPageProps) {
               <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{tool.subcategory}</span>
               <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{tool.stage}</span>
               <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">Confidence {confidence}%</span>
-              <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(tool.freshnessStatus)}`}>
-                {freshnessLabels[tool.freshnessStatus]}
-              </span>
-              <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(tool.evidenceStatus)}`}>
-                {evidenceLabels[tool.evidenceStatus]}
-              </span>
+              <StatusBadge status={tool.freshnessStatus} />
+              <StatusBadge status={tool.evidenceStatus} />
             </div>
-            <h1 className="text-3xl font-semibold sm:text-4xl">{tool.name}</h1>
-            <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground">{tool.tagline}</p>
+            <div className="flex items-start gap-4">
+              <ToolIdentity tool={tool} size="lg" />
+              <div className="min-w-0">
+                <h1 className="text-3xl font-semibold sm:text-4xl">{tool.name}</h1>
+                <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground">{tool.tagline}</p>
+              </div>
+            </div>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{tool.summary}</p>
             <div className="mt-5 flex flex-wrap gap-3">
               <a
@@ -157,7 +159,10 @@ export default async function ToolPage({ params }: ToolPageProps) {
       <section className="grid gap-4 lg:grid-cols-3">
         <div className="surface rounded-md p-5">
           <p className="text-xs font-medium uppercase text-muted-foreground">Summary</p>
-          <h2 className="mt-2 text-xl font-semibold">Fit profile</h2>
+          <div className="mt-2 flex items-center gap-3">
+            {category ? <CategoryVisual category={category} size="sm" /> : null}
+            <h2 className="text-xl font-semibold">Fit profile</h2>
+          </div>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">{tool.summary}</p>
         </div>
         <div className="surface rounded-md p-5">
@@ -215,9 +220,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
             <h2 className="text-xl font-semibold">Evidence quality</h2>
             <p className="text-sm text-muted-foreground">Manual and source-backed observations currently attached to this tool.</p>
           </div>
-          <span className={`inline-flex rounded-md border px-2 py-1 text-xs ${statusClass(tool.evidenceStatus)}`}>
-            {evidenceQuality.evidenceStatusLabel}
-          </span>
+          <StatusBadge status={tool.evidenceStatus} label={evidenceQuality.evidenceStatusLabel} />
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-md border border-border bg-background p-3">

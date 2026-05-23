@@ -4,6 +4,7 @@ import { Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CategoryCard } from "@/components/category-card";
 import { ToolCard } from "@/components/tool-card";
+import { EmptyStateVisual } from "@/components/visual-identity";
 import { getCategoryName, getToolSearchText, type RankedTool } from "@/lib/directory-filters";
 import type { Category, Tool } from "@/lib/types";
 
@@ -104,8 +105,14 @@ export function DirectorySearch({ categories, rankedTools }: DirectorySearchProp
           ))}
         </div>
       ) : (
-        <div className="surface rounded-md p-8 text-sm leading-6 text-muted-foreground">
-          No tools match these filters. Try clearing one or more filters.
+        <div className="surface rounded-md p-8">
+          <div className="flex gap-4">
+            <EmptyStateVisual kind="search" />
+            <div>
+              <p className="text-sm font-medium">No tools match these filters</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">Try clearing one or more filters.</p>
+            </div>
+          </div>
         </div>
       )}
     </section>

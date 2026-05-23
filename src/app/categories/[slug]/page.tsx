@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CategoryRankings } from "@/components/category-rankings";
+import { CategoryVisual, StatusBadge, ToolIdentity } from "@/components/visual-identity";
 import { getCategories, getCategoryBySlug, getRankedTools } from "@/lib/repository";
-import { evidenceLabels, freshnessLabels, getCategoryRefreshLabel, statusClass } from "@/lib/status";
+import { getCategoryRefreshLabel } from "@/lib/status";
 import type { Tool } from "@/lib/types";
 
 type CategoryPageProps = {
@@ -68,7 +69,10 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             <Link href="/" className="text-sm text-primary">
               Directory
             </Link>
-            <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">{category.name}</h1>
+            <div className="mt-3 flex items-center gap-4">
+              <CategoryVisual category={category} size="lg" />
+              <h1 className="text-4xl font-semibold sm:text-5xl">{category.name}</h1>
+            </div>
             <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">{category.description}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <p className="inline-flex rounded-md border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
@@ -100,18 +104,17 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 <p className="text-xs font-medium uppercase text-muted-foreground">{item.label}</p>
                 <p className="font-mono text-sm font-semibold tabular-nums">{item.tool.score}%</p>
               </div>
-              <p className="mt-3 text-base font-semibold">{item.tool.name}</p>
+              <div className="mt-3 flex items-center gap-3">
+                <ToolIdentity tool={item.tool} size="sm" />
+                <p className="text-base font-semibold">{item.tool.name}</p>
+              </div>
               <div className="mt-3 rounded-md border border-border bg-background px-3 py-2">
                 <p className="text-[11px] font-medium uppercase text-muted-foreground">Best for</p>
                 <p className="mt-1 line-clamp-3 text-xs leading-5 text-muted-foreground">{item.tool.bestFor}</p>
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
-                <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(item.tool.freshnessStatus)}`}>
-                  {freshnessLabels[item.tool.freshnessStatus]}
-                </span>
-                <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(item.tool.evidenceStatus)}`}>
-                  {evidenceLabels[item.tool.evidenceStatus]}
-                </span>
+                <StatusBadge status={item.tool.freshnessStatus} />
+                <StatusBadge status={item.tool.evidenceStatus} />
               </div>
             </Link>
           ))}

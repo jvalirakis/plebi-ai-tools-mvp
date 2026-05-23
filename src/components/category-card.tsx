@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { CategoryVisual, ToolIdentity } from "@/components/visual-identity";
 import type { Category, Tool } from "@/lib/types";
 
 type CategoryCardProps = Category & {
@@ -12,9 +13,12 @@ export function CategoryCard({ slug, name, description, subcategories, signal, t
   return (
     <Link href={`/categories/${slug}`} className="surface group flex h-full flex-col rounded-md p-5 transition hover:border-primary">
       <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h3 className="text-lg font-semibold">{name}</h3>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+        <div className="flex min-w-0 gap-3">
+          <CategoryVisual category={{ slug, name }} />
+          <div className="min-w-0">
+            <h3 className="text-lg font-semibold">{name}</h3>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+          </div>
         </div>
         <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
       </div>
@@ -33,8 +37,17 @@ export function CategoryCard({ slug, name, description, subcategories, signal, t
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Leader</p>
-            <p className="truncate text-sm font-medium">{topTool?.name ?? "Pending"}</p>
-            <p className="font-mono text-xs text-primary">{topScore}%</p>
+            {topTool ? (
+              <div className="mt-1 flex items-center gap-2">
+                <ToolIdentity tool={topTool} size="sm" />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{topTool.name}</p>
+                  <p className="font-mono text-xs text-primary">{topScore}%</p>
+                </div>
+              </div>
+            ) : (
+              <p className="mt-1 text-sm font-medium">Pending</p>
+            )}
           </div>
         </div>
         <p className="text-xs leading-5 text-muted-foreground">{signal}</p>
