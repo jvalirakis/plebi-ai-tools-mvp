@@ -63,6 +63,7 @@ export function AdminDashboard({ categories, tools, sources, configured }: Admin
         subcategory: firstCategory?.subcategories[0] ?? "Draft",
         tagline: "Draft positioning statement",
         summary: "Draft evaluation summary",
+        bestFor: "Teams evaluating a draft AI tool profile.",
         website: "https://example.com",
         pricing: "TBD",
         poll: { toolId: `draft-tool-${current.length + 1}`, votesFor: 0, votesAgainst: 0 },

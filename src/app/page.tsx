@@ -18,15 +18,16 @@ export default async function HomePage() {
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="surface rounded-md p-6 sm:p-8">
           <div className="mb-6 flex flex-wrap gap-2">
-            <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">40 seeded tools</span>
+            <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">40 AI tools</span>
             <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">8 categories</span>
             <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">Transparent scoring</span>
+            <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">80 scoring signals</span>
           </div>
           <h1 className="max-w-4xl break-words text-3xl font-semibold leading-tight sm:text-5xl">
             AI tool rankings with evidence behind every score.
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
-            Plebi combines benchmark signals, operator review, trust checks, pricing audits, and user polls into a clear score for faster tool decisions.
+            Plebi ranks AI tools by combining structured metrics, source observations, pricing signals and community votes into one transparent score.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
@@ -49,7 +50,7 @@ export default async function HomePage() {
           <div className="mb-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Top cohort average</p>
-              <h2 className="mt-1 text-2xl font-semibold">Plebi Score</h2>
+              <h2 className="mt-1 text-2xl font-semibold">How Plebi Score works</h2>
             </div>
             <ScoreRing score={averageTopScore} />
           </div>
@@ -66,14 +67,17 @@ export default async function HomePage() {
               </div>
             ))}
           </div>
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">
+            The model blends structured product metrics with normalized source observations and live community voting, so each ranking can be inspected instead of taken on trust.
+          </p>
         </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
         {[
           { label: "Ranking Inputs", value: "5", detail: "source types", icon: ShieldCheck },
-          { label: "Score Snapshots", value: "80", detail: "seeded records", icon: BarChart3 },
-          { label: "Poll Depth", value: "52k+", detail: "sample votes", icon: TrendingUp }
+          { label: "Scoring Signals", value: "80", detail: "structured observations", icon: BarChart3 },
+          { label: "Poll System", value: "Live", detail: "community voting enabled", icon: TrendingUp }
         ].map((stat) => {
           const Icon = stat.icon;
           return (
@@ -105,7 +109,7 @@ export default async function HomePage() {
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
             <h2 className="text-2xl font-semibold">Market Leaders</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Highest current Plebi Scores across the seeded directory.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Highest current Plebi Scores across the tracked directory.</p>
           </div>
           <Link href="/compare" className="hidden text-sm font-medium text-primary sm:inline">
             Compare all

@@ -77,6 +77,19 @@ export function getScoreBreakdown(tool: Tool): ScoreBreakdown {
   };
 }
 
+export function getTopMetric(metrics: MetricBreakdown) {
+  return (Object.keys(metrics) as MetricKey[])
+    .map((key) => ({ key, label: metricLabels[key], score: metrics[key] }))
+    .sort((a, b) => b.score - a.score)[0];
+}
+
+export function getRankExplanation(tool: Tool) {
+  const breakdown = getScoreBreakdown(tool);
+  const topMetric = getTopMetric(tool.metrics);
+
+  return `${tool.name} ranks here because ${topMetric.label.toLowerCase()} is its strongest structured metric at ${topMetric.score}%, supported by a ${breakdown.sourceSignal}% source signal and ${breakdown.pollSentiment}% community sentiment.`;
+}
+
 export function getConfidenceLevel(tool: Tool) {
   const observationConfidence = tool.observations.length
     ? tool.observations.reduce((total, observation) => total + observation.confidence, 0) / tool.observations.length

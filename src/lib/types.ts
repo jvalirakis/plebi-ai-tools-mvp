@@ -27,6 +27,8 @@ export type SourceObservation = {
   sourceId: string;
   sourceName: string;
   sourceType: Source["type"];
+  sourceUrl?: string;
+  sourceWeight?: number;
   title: string;
   observedAt: string;
   score: number;
@@ -66,6 +68,7 @@ export type Tool = {
   subcategory: string;
   tagline: string;
   summary: string;
+  bestFor: string;
   website: string;
   pricing: string;
   founded: string;

@@ -19,6 +19,7 @@ create table if not exists public.tools (
   subcategory text not null,
   tagline text not null,
   summary text not null,
+  best_for text not null default '',
   website text not null,
   pricing text not null,
   founded text not null,

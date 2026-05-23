@@ -55,7 +55,7 @@ export function PollWidget({ poll }: PollWidgetProps) {
     }
 
     if (!poll.id) {
-      setStatus("Vote saved locally until Supabase polls are seeded.");
+      setStatus("Vote saved locally until database polls are available.");
       return;
     }
 

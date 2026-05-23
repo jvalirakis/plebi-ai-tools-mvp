@@ -173,6 +173,8 @@ function mapObservation(row: SourceObservationRow, sourceById: Map<string, Sourc
     sourceId: row.source_id,
     sourceName: source?.name ?? "Unknown Source",
     sourceType: source?.type ?? "benchmark",
+    sourceUrl: source?.url,
+    sourceWeight: source?.weight,
     title: row.title,
     observedAt: row.observed_at,
     score: row.score,
@@ -228,7 +230,9 @@ function adaptSeedObservations(tool: Tool, toolId: string, sourceByName: Map<str
       ...observation,
       id: `${toolId}-${observation.sourceId}`,
       toolId,
-      sourceId: source?.id ?? observation.sourceId
+      sourceId: source?.id ?? observation.sourceId,
+      sourceUrl: source?.url ?? observation.sourceUrl,
+      sourceWeight: source?.weight ?? observation.sourceWeight
     };
   });
 }
@@ -316,6 +320,7 @@ export const getToolRecords = cache(async (): Promise<Tool[]> => {
       subcategory: row.subcategory,
       tagline: row.tagline,
       summary: row.summary,
+      bestFor: row.best_for || seedTool?.bestFor || row.summary,
       website: row.website,
       pricing: row.pricing,
       founded: row.founded,

@@ -8,7 +8,7 @@ import { ScoreRing } from "@/components/score-ring";
 import { SourceObservations } from "@/components/source-observations";
 import { ToolCard } from "@/components/tool-card";
 import { getCategories, getRelatedTools, getToolBySlug, getTools } from "@/lib/repository";
-import { getConfidenceLevel, getScoreBreakdown } from "@/lib/scoring";
+import { getConfidenceLevel, getRankExplanation, getScoreBreakdown } from "@/lib/scoring";
 
 type ToolPageProps = {
   params: Promise<{ slug: string }>;
@@ -60,6 +60,10 @@ export default async function ToolPage({ params }: ToolPageProps) {
             </div>
             <h1 className="text-4xl font-semibold">{tool.name}</h1>
             <p className="mt-4 max-w-3xl text-lg leading-8 text-muted-foreground">{tool.tagline}</p>
+            <p className="mt-4 max-w-3xl text-sm leading-6">
+              <span className="font-medium text-foreground">Best for: </span>
+              <span className="text-muted-foreground">{tool.bestFor}</span>
+            </p>
             <p className="mt-4 max-w-3xl text-sm leading-6 text-muted-foreground">{tool.summary}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a
@@ -89,6 +93,10 @@ export default async function ToolPage({ params }: ToolPageProps) {
         <div className="surface rounded-md p-5">
           <h2 className="mb-4 text-xl font-semibold">Score Breakdown</h2>
           <MetricBars metrics={breakdown} includeSignals />
+          <div className="mt-6 rounded-md border border-border bg-background p-4">
+            <p className="text-sm font-semibold">Why this rank?</p>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{getRankExplanation(tool)}</p>
+          </div>
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             <div className="rounded-md border border-border bg-background p-3">
               <p className="text-xs text-muted-foreground">Pricing</p>
@@ -109,7 +117,12 @@ export default async function ToolPage({ params }: ToolPageProps) {
 
       <section className="surface rounded-md p-5">
         <div className="mb-4 flex items-center justify-between gap-4">
-          <h2 className="text-xl font-semibold">Source Observations</h2>
+          <div>
+            <h2 className="text-xl font-semibold">Source breakdown</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              View evidence behind the score by source, confidence, weight, and observation date.
+            </p>
+          </div>
           <span className="font-mono text-sm text-muted-foreground tabular-nums">{breakdown.sourceSignal}% signal</span>
         </div>
         <SourceObservations observations={tool.observations} />

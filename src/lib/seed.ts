@@ -1,7 +1,7 @@
 import { clampScore, getPollSentiment } from "@/lib/scoring";
 import type { Category, MetricBreakdown, Source, SourceObservation, Tool } from "@/lib/types";
 
-type ToolSeed = Omit<Tool, "observations" | "scoreSnapshots">;
+type ToolSeed = Omit<Tool, "bestFor" | "observations" | "scoreSnapshots">;
 
 export const categories: Category[] = [
   {
@@ -120,6 +120,49 @@ export const sources: Source[] = [
     credibility: 90
   }
 ];
+
+const bestForBySlug: Record<string, string> = {
+  "chatgpt": "Teams that need one flexible assistant for writing, analysis, and multimodal work.",
+  "claude": "Long-context writing, research synthesis, and careful editorial collaboration.",
+  "jasper": "Marketing teams that need brand-controlled campaign content at scale.",
+  "copy-ai": "Go-to-market teams standardizing repeatable sales and marketing copy workflows.",
+  "writesonic": "Content teams producing search-oriented articles and template-driven assets.",
+  "midjourney": "Creative teams prioritizing distinctive visual quality and art direction.",
+  "dall-e": "Teams that want simple image generation inside a broader AI assistant workflow.",
+  "stable-diffusion": "Technical teams that need controllable, customizable image generation pipelines.",
+  "adobe-firefly": "Design organizations that need commercial safety and Adobe workflow integration.",
+  "leonardo-ai": "Game, product, and content teams creating fast visual variants.",
+  "runway": "Creative teams making AI-assisted video concepts and production edits.",
+  "synthesia": "Businesses producing governed training, enablement, and localized avatar video.",
+  "descript": "Podcast, education, and video teams editing media through transcripts.",
+  "elevenlabs": "Teams producing realistic narration, dubbing, and voice experiences.",
+  "pika": "Creators testing short-form motion ideas with low setup overhead.",
+  "github-copilot": "Engineering teams that want broad IDE coverage and enterprise controls.",
+  "cursor": "Developers who want an AI-native editor with repository-aware assistance.",
+  "replit-agent": "Builders shipping prototypes and small apps in a hosted coding workspace.",
+  "codeium": "Teams evaluating code assistance with cost sensitivity and editor flexibility.",
+  "sourcegraph-cody": "Organizations working across large codebases, migrations, and code search.",
+  "perplexity": "Researchers who need fast answers with visible web citations.",
+  "elicit": "Analysts and academics running structured literature review workflows.",
+  "consensus": "Users validating claims against scientific literature and citations.",
+  "glean": "Larger companies unifying enterprise search and workplace knowledge.",
+  "you-com": "Users comparing AI search modes for research and productivity.",
+  "notion-ai": "Teams already running docs, notes, and projects in Notion.",
+  "grammarly": "Organizations improving business communication quality across many users.",
+  "otter-ai": "Teams that need searchable meeting records, summaries, and action items.",
+  "zapier-ai": "Operations teams automating repeatable cross-app business processes.",
+  "gamma": "Teams creating fast briefings, decks, and shareable narrative assets.",
+  "hubspot-breeze": "HubSpot customers adding AI to CRM, support, and revenue workflows.",
+  "clay": "Modern revenue teams building enrichment and personalized outbound systems.",
+  "apollo-ai": "Sales teams consolidating prospect data, sequencing, and messaging.",
+  "lavender": "Sales reps and managers improving outbound email quality.",
+  "mutiny": "B2B marketers personalizing website conversion paths by segment.",
+  "tableau-pulse": "Tableau and Salesforce teams adopting proactive metric insights.",
+  "julius-ai": "Individuals and teams analyzing spreadsheets, charts, and uploaded data.",
+  "akkio": "Business teams building no-code predictive analytics and forecasts.",
+  "datarobot": "Enterprise teams that need governed model development and monitoring.",
+  "thoughtspot-sage": "Organizations offering natural-language BI on governed business data."
+};
 
 const toolSeeds: ToolSeed[] = [
   {
@@ -756,6 +799,8 @@ function makeObservation(tool: ToolSeed, source: Source, index: number): SourceO
     sourceId: source.id,
     sourceName: source.name,
     sourceType: source.type,
+    sourceUrl: source.url,
+    sourceWeight: source.weight,
     title: observationTitles[index],
     observedAt: `2026-0${((index + tool.slug.length) % 4) + 1}-${String(((tool.name.length + index * 4) % 23) + 3).padStart(2, "0")}`,
     score,
@@ -788,6 +833,7 @@ export const tools: Tool[] = toolSeeds.map((tool, index) => {
   const score = estimateScore(tool);
   return {
     ...tool,
+    bestFor: bestForBySlug[tool.slug],
     observations: sources.map((source, sourceIndex) => makeObservation(tool, source, sourceIndex)),
     scoreSnapshots: [
       {

@@ -36,6 +36,7 @@ export type Database = {
           subcategory: string;
           tagline: string;
           summary: string;
+          best_for: string;
           website: string;
           pricing: string;
           founded: string;
@@ -51,6 +52,7 @@ export type Database = {
           subcategory: string;
           tagline: string;
           summary: string;
+          best_for?: string;
           website: string;
           pricing: string;
           founded: string;
