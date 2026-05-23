@@ -125,7 +125,7 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
         {selectedTools.map((tool) => {
           const breakdown = getScoreBreakdown(tool);
           return (
-            <article key={tool.slug} className="surface rounded-md p-5">
+            <article key={tool.slug} className="surface rounded-md p-5 transition duration-200 hover:-translate-y-0.5 hover:border-primary/70 hover:shadow-lg hover:shadow-black/5">
               <div className="mb-5 flex items-start justify-between gap-4">
                 <div className="flex min-w-0 gap-3">
                   <ToolIdentity tool={tool} size="md" />

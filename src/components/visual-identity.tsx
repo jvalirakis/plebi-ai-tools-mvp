@@ -1,24 +1,34 @@
 import {
   AlertCircle,
+  AudioLines,
   BarChart3,
+  Bot,
+  Braces,
+  BrainCircuit,
   Briefcase,
+  ChartLine,
   CheckCircle2,
   Clock3,
   Code2,
   Database,
   DollarSign,
   FileQuestion,
+  Frame,
   Gauge,
   Image,
   Layers3,
   Megaphone,
+  MessageCircle,
   PenLine,
   Search,
   ShieldAlert,
   ShieldCheck,
+  Sparkles,
   Star,
   Users,
-  Video
+  Video,
+  WandSparkles,
+  Workflow
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { evidenceLabels, freshnessLabels, statusClass } from "@/lib/status";
@@ -30,8 +40,12 @@ type VisualTone = {
   accentClassName: string;
 };
 
+type ToolVisual = VisualTone & {
+  label: string;
+};
+
 type ToolIdentityProps = {
-  tool: Pick<Tool, "name" | "categorySlug" | "subcategory">;
+  tool: Pick<Tool, "name" | "categorySlug" | "subcategory" | "slug">;
   size?: "sm" | "md" | "lg";
 };
 
@@ -121,6 +135,42 @@ const sourceIcons: Record<Source["type"], LucideIcon> = {
   security: ShieldCheck
 };
 
+const categoryFallbackLabels: Record<string, string> = {
+  "image-generation": "Image",
+  "coding-dev": "Code",
+  "video-audio": "Media",
+  "research-search": "Search",
+  "productivity-ops": "Ops",
+  "sales-marketing": "Growth",
+  "data-analytics": "Data",
+  "writing-content": "Write"
+};
+
+const knownToolVisuals: Record<string, Pick<ToolVisual, "icon" | "label">> = {
+  chatgpt: { icon: MessageCircle, label: "Chat" },
+  claude: { icon: BrainCircuit, label: "Claude" },
+  "github-copilot": { icon: Braces, label: "Code" },
+  midjourney: { icon: Frame, label: "Art" },
+  "google-gemini-image": { icon: Sparkles, label: "Gemini" },
+  "dall-e": { icon: WandSparkles, label: "GPT" },
+  perplexity: { icon: Search, label: "Search" },
+  elevenlabs: { icon: AudioLines, label: "Voice" },
+  grammarly: { icon: PenLine, label: "Write" },
+  "zapier-ai": { icon: Workflow, label: "Auto" }
+};
+
+const subcategoryVisuals: Array<{ pattern: RegExp; icon: LucideIcon; label: string }> = [
+  { pattern: /assistant|chat|writing|copy|seo|editorial/i, icon: MessageCircle, label: "Write" },
+  { pattern: /code|developer|ide|agent|repo|repository/i, icon: Braces, label: "Code" },
+  { pattern: /image|visual|design|creative|text to image/i, icon: Frame, label: "Image" },
+  { pattern: /search|answer|research|citation|literature/i, icon: Search, label: "Search" },
+  { pattern: /voice|audio|video|dubbing|meeting|transcription/i, icon: AudioLines, label: "Media" },
+  { pattern: /automation|workflow|workspace|ops|operations/i, icon: Workflow, label: "Ops" },
+  { pattern: /sales|marketing|crm|outbound|email|revenue/i, icon: Megaphone, label: "Growth" },
+  { pattern: /data|analytics|business intelligence|bi|forecast|model/i, icon: ChartLine, label: "Data" },
+  { pattern: /assistant|general/i, icon: Bot, label: "AI" }
+];
+
 function getTone(categorySlug: string) {
   return categoryVisuals[categorySlug] ?? fallbackTone;
 }
@@ -135,25 +185,47 @@ function getInitials(name: string) {
   return initials || "AI";
 }
 
+function getToolVisual(tool: Pick<Tool, "name" | "categorySlug" | "subcategory" | "slug">): ToolVisual {
+  const tone = getTone(tool.categorySlug);
+  const knownVisual = knownToolVisuals[tool.slug];
+  const subcategoryVisual = subcategoryVisuals.find((visual) => visual.pattern.test(`${tool.subcategory} ${tool.name}`));
+
+  return {
+    ...tone,
+    icon: knownVisual?.icon ?? subcategoryVisual?.icon ?? tone.icon,
+    label: knownVisual?.label ?? subcategoryVisual?.label ?? categoryFallbackLabels[tool.categorySlug] ?? getInitials(tool.name)
+  };
+}
+
 function getStatusLabel(status: FreshnessStatus | EvidenceStatus) {
   return status in freshnessLabels ? freshnessLabels[status as FreshnessStatus] : evidenceLabels[status as EvidenceStatus];
 }
 
 export function ToolIdentity({ tool, size = "md" }: ToolIdentityProps) {
-  const tone = getTone(tool.categorySlug);
-  const Icon = tone.icon;
+  const visual = getToolVisual(tool);
+  const Icon = visual.icon;
   const sizeClass = {
-    sm: "h-10 w-10 text-xs",
-    md: "h-12 w-12 text-sm",
-    lg: "h-16 w-16 text-lg"
+    sm: "h-10 w-10",
+    md: "h-12 w-12",
+    lg: "h-16 w-16"
   }[size];
-  const iconClass = size === "lg" ? "h-5 w-5" : "h-4 w-4";
+  const iconClass = {
+    sm: "h-[18px] w-[18px]",
+    md: "h-5 w-5",
+    lg: "h-7 w-7"
+  }[size];
+  const label = visual.label || getInitials(tool.name);
 
   return (
-    <div className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-md border ${sizeClass} ${tone.className}`} aria-hidden="true">
-      <span className={`absolute -right-3 -top-3 h-8 w-8 rounded-full ${tone.accentClassName}`} />
-      <span className="relative font-mono font-semibold tabular-nums">{getInitials(tool.name)}</span>
-      <Icon className={`absolute bottom-1 right-1 opacity-70 ${iconClass}`} />
+    <div className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-md border ${sizeClass} ${visual.className}`} aria-hidden="true">
+      <span className={`absolute -right-3 -top-3 h-8 w-8 rounded-full ${visual.accentClassName}`} />
+      <span className={`absolute -bottom-3 -left-3 h-8 w-8 rounded-full ${visual.accentClassName} opacity-70`} />
+      <Icon className={`relative ${iconClass}`} strokeWidth={2.1} />
+      {size !== "sm" ? (
+        <span className="absolute bottom-1 left-1 max-w-[calc(100%-0.5rem)] truncate rounded border border-current/10 bg-background/80 px-1.5 py-0.5 text-[10px] font-medium leading-none text-foreground/80 shadow-sm backdrop-blur-sm">
+          {label}
+        </span>
+      ) : null}
     </div>
   );
 }
