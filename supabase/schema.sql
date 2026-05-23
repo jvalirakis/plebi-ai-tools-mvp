@@ -102,6 +102,32 @@ create policy "Authenticated users can vote" on public.poll_votes
   for insert to authenticated
   with check (auth.uid() = user_id);
 
+create policy "Users can read own poll votes" on public.poll_votes
+  for select to authenticated
+  using (auth.uid() = user_id);
+
+create or replace function public.apply_poll_vote_to_counts()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.vote = 'for' then
+    update public.polls set votes_for = votes_for + 1 where id = new.poll_id;
+  else
+    update public.polls set votes_against = votes_against + 1 where id = new.poll_id;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists poll_votes_update_poll_counts on public.poll_votes;
+create trigger poll_votes_update_poll_counts
+  after insert on public.poll_votes
+  for each row execute function public.apply_poll_vote_to_counts();
+
 create policy "Admins manage categories" on public.categories
   for all to authenticated
   using (exists (select 1 from public.admin_profiles where user_id = auth.uid() and role = 'admin'))

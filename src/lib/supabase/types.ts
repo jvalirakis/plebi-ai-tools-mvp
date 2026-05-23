@@ -25,6 +25,7 @@ export type Database = {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["categories"]["Insert"]>;
+        Relationships: [];
       };
       tools: {
         Row: {
@@ -58,6 +59,7 @@ export type Database = {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["tools"]["Insert"]>;
+        Relationships: [];
       };
       sources: {
         Row: {
@@ -79,6 +81,7 @@ export type Database = {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["sources"]["Insert"]>;
+        Relationships: [];
       };
       source_observations: {
         Row: {
@@ -106,6 +109,7 @@ export type Database = {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["source_observations"]["Insert"]>;
+        Relationships: [];
       };
       score_snapshots: {
         Row: {
@@ -125,6 +129,7 @@ export type Database = {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["score_snapshots"]["Insert"]>;
+        Relationships: [];
       };
       polls: {
         Row: {
@@ -142,6 +147,25 @@ export type Database = {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["polls"]["Insert"]>;
+        Relationships: [];
+      };
+      poll_votes: {
+        Row: {
+          id: string;
+          poll_id: string;
+          user_id: string | null;
+          vote: "for" | "against";
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          poll_id: string;
+          user_id?: string | null;
+          vote: "for" | "against";
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["poll_votes"]["Insert"]>;
+        Relationships: [];
       };
       admin_profiles: {
         Row: {
@@ -157,7 +181,12 @@ export type Database = {
         Update: {
           role?: "admin" | "analyst";
         };
+        Relationships: [];
       };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 };
