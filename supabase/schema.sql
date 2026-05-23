@@ -24,6 +24,9 @@ create table if not exists public.tools (
   pricing text not null,
   founded text not null,
   stage text not null check (stage in ('Emerging', 'Scaling', 'Established')),
+  last_verified_at date,
+  freshness_status text not null default 'seed_only' check (freshness_status in ('current', 'needs_review', 'stale', 'seed_only')),
+  evidence_status text not null default 'manual_seed' check (evidence_status in ('source_verified', 'partially_verified', 'manual_seed', 'insufficient_evidence')),
   metrics jsonb not null,
   created_at timestamptz not null default now()
 );
@@ -47,6 +50,7 @@ create table if not exists public.source_observations (
   score integer not null check (score >= 0 and score <= 100),
   confidence numeric not null check (confidence >= 0 and confidence <= 1),
   metric_impacts jsonb not null default '{}',
+  evidence_url text,
   notes text not null,
   created_at timestamptz not null default now()
 );
@@ -55,6 +59,7 @@ create table if not exists public.score_snapshots (
   id uuid primary key default gen_random_uuid(),
   tool_id uuid not null references public.tools(id) on delete cascade,
   captured_at date not null,
+  snapshot_date date not null default current_date,
   score integer not null check (score >= 0 and score <= 100),
   reason text not null,
   created_at timestamptz not null default now()

@@ -1,7 +1,7 @@
 import { clampScore, getPollSentiment } from "@/lib/scoring";
 import type { Category, MetricBreakdown, Source, SourceObservation, Tool } from "@/lib/types";
 
-type ToolSeed = Omit<Tool, "bestFor" | "observations" | "scoreSnapshots">;
+type ToolSeed = Omit<Tool, "bestFor" | "lastVerifiedAt" | "freshnessStatus" | "evidenceStatus" | "observations" | "scoreSnapshots">;
 
 export const categories: Category[] = [
   {
@@ -78,7 +78,7 @@ export const categories: Category[] = [
   }
 ];
 
-export const sources: Source[] = [
+const defaultSources: Source[] = [
   {
     id: "source-benchmark",
     name: "Plebi Benchmark Lab",
@@ -121,6 +121,51 @@ export const sources: Source[] = [
   }
 ];
 
+const imagePlaceholderSources: Source[] = [
+  {
+    id: "source-image-manual-benchmark",
+    name: "Manual seed benchmark placeholder",
+    type: "benchmark",
+    url: "https://plebi.example/manual-seed/image-benchmark",
+    weight: 0.24,
+    credibility: 38
+  },
+  {
+    id: "source-image-manual-product-review",
+    name: "Manual seed product landscape placeholder",
+    type: "review",
+    url: "https://plebi.example/manual-seed/image-landscape",
+    weight: 0.22,
+    credibility: 36
+  },
+  {
+    id: "source-image-manual-community",
+    name: "Manual seed community signal placeholder",
+    type: "community",
+    url: "https://plebi.example/manual-seed/image-community",
+    weight: 0.18,
+    credibility: 32
+  },
+  {
+    id: "source-image-manual-pricing",
+    name: "Manual seed pricing placeholder",
+    type: "pricing",
+    url: "https://plebi.example/manual-seed/image-pricing",
+    weight: 0.16,
+    credibility: 34
+  },
+  {
+    id: "source-image-manual-evidence",
+    name: "Manual seed evidence placeholder",
+    type: "security",
+    url: "https://plebi.example/manual-seed/image-evidence",
+    weight: 0.2,
+    credibility: 34
+  }
+];
+
+export const sources: Source[] = [...defaultSources, ...imagePlaceholderSources];
+
 const bestForBySlug: Record<string, string> = {
   "chatgpt": "Teams that need one flexible assistant for writing, analysis, and multimodal work.",
   "claude": "Long-context writing, research synthesis, and careful editorial collaboration.",
@@ -128,7 +173,10 @@ const bestForBySlug: Record<string, string> = {
   "copy-ai": "Go-to-market teams standardizing repeatable sales and marketing copy workflows.",
   "writesonic": "Content teams producing search-oriented articles and template-driven assets.",
   "midjourney": "Creative teams prioritizing distinctive visual quality and art direction.",
-  "dall-e": "Teams that want simple image generation inside a broader AI assistant workflow.",
+  "google-gemini-image": "Teams evaluating Gemini image generation, including Nano Banana and Nano Banana Pro signals.",
+  "dall-e": "Teams that want ChatGPT Images and GPT Image generation inside a broader assistant workflow.",
+  "flux": "Creative and technical teams evaluating the Flux open and hosted image generation ecosystem.",
+  "ideogram": "Designers and marketers testing image generation with strong typography and prompt alignment.",
   "stable-diffusion": "Technical teams that need controllable, customizable image generation pipelines.",
   "adobe-firefly": "Design organizations that need commercial safety and Adobe workflow integration.",
   "leonardo-ai": "Game, product, and content teams creating fast visual variants.",
@@ -258,22 +306,67 @@ const toolSeeds: ToolSeed[] = [
   {
     id: "tool-dall-e",
     slug: "dall-e",
-    name: "DALL-E",
+    name: "ChatGPT Images / GPT Image",
     categorySlug: "image-generation",
     subcategory: "Text to image",
-    tagline: "Image generation integrated into a broad assistant and developer ecosystem.",
-    summary: "Strong for users who need convenient image creation inside a general AI workflow with simple prompting.",
-    website: "https://openai.com/dall-e",
+    tagline: "Image generation inside ChatGPT and OpenAI workflows, including GPT Image family signals.",
+    summary: "Included as a modern OpenAI image candidate that needs source verification before being treated as market consensus.",
+    website: "https://openai.com",
     pricing: "Bundled and API usage",
-    founded: "2021",
+    founded: "2025",
     stage: "Established",
-    metrics: { capability: 88, usability: 90, reliability: 84, value: 82, adoption: 88 },
+    metrics: { capability: 89, usability: 91, reliability: 84, value: 82, adoption: 90 },
     poll: { toolId: "tool-dall-e", votesFor: 2196, votesAgainst: 358 }
+  },
+  {
+    id: "tool-google-gemini-image",
+    slug: "google-gemini-image",
+    name: "Google Gemini Image / Nano Banana Pro",
+    categorySlug: "image-generation",
+    subcategory: "Text to image",
+    tagline: "Google image generation candidate including Gemini image generation and Nano Banana Pro aliases.",
+    summary: "Included for current market coverage, with ranking status marked for verification until source observations are reviewed.",
+    website: "https://gemini.google.com",
+    pricing: "Bundled and plan-based access",
+    founded: "2025",
+    stage: "Established",
+    metrics: { capability: 90, usability: 88, reliability: 83, value: 81, adoption: 87 },
+    poll: { toolId: "tool-google-gemini-image", votesFor: 0, votesAgainst: 0 }
+  },
+  {
+    id: "tool-flux",
+    slug: "flux",
+    name: "Flux",
+    categorySlug: "image-generation",
+    subcategory: "Open models",
+    tagline: "Image generation ecosystem spanning open models, hosted APIs, and creative tooling.",
+    summary: "Included as a modern image generation ecosystem candidate, pending verified evidence and model freshness review.",
+    website: "https://blackforestlabs.ai",
+    pricing: "Open models and hosted API options",
+    founded: "2024",
+    stage: "Scaling",
+    metrics: { capability: 88, usability: 76, reliability: 79, value: 88, adoption: 80 },
+    poll: { toolId: "tool-flux", votesFor: 0, votesAgainst: 0 }
+  },
+  {
+    id: "tool-ideogram",
+    slug: "ideogram",
+    name: "Ideogram",
+    categorySlug: "image-generation",
+    subcategory: "Text to image",
+    tagline: "Image generation product known for prompt alignment, design workflows, and text rendering use cases.",
+    summary: "Included for broader image market coverage, with score treated as a manual seed until evidence is verified.",
+    website: "https://ideogram.ai",
+    pricing: "Free and paid plans",
+    founded: "2023",
+    stage: "Scaling",
+    metrics: { capability: 84, usability: 84, reliability: 78, value: 83, adoption: 78 },
+    poll: { toolId: "tool-ideogram", votesFor: 0, votesAgainst: 0 }
   },
   {
     id: "tool-stable-diffusion",
     slug: "stable-diffusion",
-    name: "Stable Diffusion",
+    name: "Stable Diffusion ecosystem",
     categorySlug: "image-generation",
     subcategory: "Open models",
     tagline: "Open image generation ecosystem with broad model, hosting, and customization options.",
@@ -791,7 +884,10 @@ function hashOffset(seed: string, index: number) {
 function makeObservation(tool: ToolSeed, source: Source, index: number): SourceObservation {
   const [primary, secondary] = sourceMetricPairs[index];
   const score = clampScore(tool.metrics[primary] * 0.62 + tool.metrics[secondary] * 0.28 + source.credibility * 0.1 + hashOffset(tool.id, index));
-  const confidence = Math.min(0.98, Math.max(0.64, source.credibility / 100 - index * 0.015 + hashOffset(tool.slug, index) / 120));
+  const isManualImagePlaceholder = source.id.startsWith("source-image-manual");
+  const confidence = isManualImagePlaceholder
+    ? Math.min(0.48, Math.max(0.28, source.credibility / 100 - index * 0.01))
+    : Math.min(0.98, Math.max(0.64, source.credibility / 100 - index * 0.015 + hashOffset(tool.slug, index) / 120));
 
   return {
     id: `${tool.id}-${source.id}`,
@@ -801,15 +897,20 @@ function makeObservation(tool: ToolSeed, source: Source, index: number): SourceO
     sourceType: source.type,
     sourceUrl: source.url,
     sourceWeight: source.weight,
-    title: observationTitles[index],
-    observedAt: `2026-0${((index + tool.slug.length) % 4) + 1}-${String(((tool.name.length + index * 4) % 23) + 3).padStart(2, "0")}`,
+    evidenceUrl: null,
+    title: isManualImagePlaceholder ? observationTitles[index].replace(/^(.*)$/, "Manual seed $1 placeholder") : observationTitles[index],
+    observedAt: isManualImagePlaceholder
+      ? "2026-05-23"
+      : `2026-0${((index + tool.slug.length) % 4) + 1}-${String(((tool.name.length + index * 4) % 23) + 3).padStart(2, "0")}`,
     score,
     confidence: Number(confidence.toFixed(2)),
     metricImpacts: {
       [primary]: tool.metrics[primary],
       [secondary]: tool.metrics[secondary]
     },
-    notes: `${tool.name} scored strongest on ${primary} with supporting signal from ${secondary}. Confidence reflects source credibility, sample depth, and recency.`
+    notes: isManualImagePlaceholder
+      ? `${tool.name} is included as an image-generation candidate from manual seed coverage. This placeholder is not source-verified and should be reviewed before treating the rank as current market consensus.`
+      : `${tool.name} scored strongest on ${primary} with supporting signal from ${secondary}. Confidence reflects source credibility, sample depth, and recency.`
   };
 }
 
@@ -821,7 +922,7 @@ function estimateScore(tool: ToolSeed) {
     tool.metrics.value * 0.16 +
     tool.metrics.adoption * 0.13;
   const normalizedMetricScore = metricScore / 0.9;
-  const sourceSignal = sources.slice(0, 5).reduce((total, source, index) => {
+  const sourceSignal = defaultSources.reduce((total, source, index) => {
     const [primary, secondary] = sourceMetricPairs[index];
     return total + (tool.metrics[primary] * 0.7 + tool.metrics[secondary] * 0.3) * source.weight;
   }, 0);
@@ -831,24 +932,33 @@ function estimateScore(tool: ToolSeed) {
 
 export const tools: Tool[] = toolSeeds.map((tool, index) => {
   const score = estimateScore(tool);
+  const isImageGeneration = tool.categorySlug === "image-generation";
+  const observationSources = isImageGeneration ? imagePlaceholderSources : defaultSources;
+  const snapshotDate = isImageGeneration ? "2026-05-23" : "2026-04-10";
+
   return {
     ...tool,
     bestFor: bestForBySlug[tool.slug],
-    observations: sources.map((source, sourceIndex) => makeObservation(tool, source, sourceIndex)),
+    lastVerifiedAt: null,
+    freshnessStatus: isImageGeneration ? "needs_review" : "seed_only",
+    evidenceStatus: "manual_seed",
+    observations: observationSources.map((source, sourceIndex) => makeObservation(tool, source, sourceIndex)),
     scoreSnapshots: [
       {
         id: `${tool.id}-snapshot-q1`,
         toolId: tool.id,
         capturedAt: "2026-01-15",
+        snapshotDate: "2026-01-15",
         score: clampScore(score - 2 - (index % 3)),
         reason: "Initial Plebi benchmark import"
       },
       {
         id: `${tool.id}-snapshot-q2`,
         toolId: tool.id,
-        capturedAt: "2026-04-10",
+        capturedAt: snapshotDate,
+        snapshotDate,
         score,
-        reason: "Updated source observations and poll weighting"
+        reason: isImageGeneration ? "Manual seed coverage expanded; needs verification" : "Updated source observations and poll weighting"
       }
     ]
   };

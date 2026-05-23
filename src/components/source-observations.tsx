@@ -48,9 +48,9 @@ export function SourceObservations({ observations }: SourceObservationsProps) {
               </div>
               <div className="mb-3 flex flex-wrap gap-2">
                 <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">Observed {observation.observedAt}</span>
-                {observation.sourceUrl ? (
+                {observation.evidenceUrl ? (
                   <a
-                    href={observation.sourceUrl}
+                    href={observation.evidenceUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="chip rounded-md px-2 py-1 text-xs text-primary hover:underline"
