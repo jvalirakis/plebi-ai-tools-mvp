@@ -3,6 +3,8 @@
 import { Database, FileClock, Layers3, Plus, Save, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AuthPanel } from "@/components/auth-panel";
+import { EvidenceIntake } from "@/components/evidence-intake";
+import { getReviewReasons, getVerificationAgeLabel } from "@/lib/evidence";
 import { getScoreBreakdown } from "@/lib/scoring";
 import { evidenceLabels, freshnessLabels, statusClass } from "@/lib/status";
 import type { Category, Source, SourceObservation, Tool } from "@/lib/types";
@@ -14,9 +16,10 @@ type AdminDashboardProps = {
   configured: boolean;
 };
 
-type AdminTab = "tools" | "categories" | "sources" | "observations" | "snapshots";
+type AdminTab = "evidence" | "tools" | "categories" | "sources" | "observations" | "snapshots";
 
 const tabs: Array<{ id: AdminTab; label: string }> = [
+  { id: "evidence", label: "Evidence Intake" },
   { id: "tools", label: "Tools" },
   { id: "categories", label: "Categories" },
   { id: "sources", label: "Sources" },
@@ -29,7 +32,7 @@ function fieldClass() {
 }
 
 export function AdminDashboard({ categories, tools, sources, configured }: AdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<AdminTab>("tools");
+  const [activeTab, setActiveTab] = useState<AdminTab>("evidence");
   const [editableTools, setEditableTools] = useState(tools.slice(0, 12));
   const [editableCategories, setEditableCategories] = useState(categories);
   const [editableSources, setEditableSources] = useState(sources);
@@ -38,7 +41,9 @@ export function AdminDashboard({ categories, tools, sources, configured }: Admin
   );
   const [editableSnapshots, setEditableSnapshots] = useState(tools.flatMap((tool) => tool.scoreSnapshots).slice(0, 16));
   const [savedAt, setSavedAt] = useState<string | null>(null);
-  const reviewTools = tools.filter((tool) => tool.freshnessStatus === "stale" || tool.freshnessStatus === "needs_review");
+  const reviewRows = tools
+    .map((tool) => ({ tool, reasons: getReviewReasons(tool) }))
+    .filter((row) => row.reasons.length);
 
   const dashboardStats = useMemo(
     () => [
@@ -84,7 +89,7 @@ export function AdminDashboard({ categories, tools, sources, configured }: Admin
         <div className="surface rounded-md p-5">
           <h1 className="text-3xl font-semibold">Admin Dashboard</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            Manage the ranked directory, scoring evidence, poll inputs, and score history before connecting production Supabase writes.
+            Manage the ranked directory, scoring evidence, poll inputs, and score history with Supabase-backed admin workflows.
           </p>
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             {dashboardStats.map((stat) => {
@@ -102,14 +107,16 @@ export function AdminDashboard({ categories, tools, sources, configured }: Admin
         <AuthPanel configured={configured} />
       </div>
 
-      {reviewTools.length ? (
+      {reviewRows.length ? (
         <section className="surface rounded-md p-5">
           <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-base font-semibold">Freshness Review Queue</h2>
-              <p className="text-sm text-muted-foreground">Tools marked stale or needs review before their rank should be treated as current.</p>
+              <h2 className="text-base font-semibold">Review Queue</h2>
+              <p className="text-sm text-muted-foreground">
+                Tools flagged seed only, needs review, insufficient evidence, or not verified in the last 30/60/90 days.
+              </p>
             </div>
-            <span className="font-mono text-sm text-muted-foreground tabular-nums">{reviewTools.length} tools</span>
+            <span className="font-mono text-sm text-muted-foreground tabular-nums">{reviewRows.length} tools</span>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
@@ -119,11 +126,12 @@ export function AdminDashboard({ categories, tools, sources, configured }: Admin
                   <th className="px-3 py-2 font-medium">Category</th>
                   <th className="px-3 py-2 font-medium">Freshness</th>
                   <th className="px-3 py-2 font-medium">Evidence</th>
+                  <th className="px-3 py-2 font-medium">Queue reason</th>
                   <th className="px-3 py-2 font-medium">Last verified</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {reviewTools.map((tool) => (
+                {reviewRows.map(({ tool, reasons }) => (
                   <tr key={tool.id}>
                     <td className="px-3 py-2 font-medium">{tool.name}</td>
                     <td className="px-3 py-2 text-muted-foreground">{tool.categorySlug}</td>
@@ -137,7 +145,10 @@ export function AdminDashboard({ categories, tools, sources, configured }: Admin
                         {evidenceLabels[tool.evidenceStatus]}
                       </span>
                     </td>
-                    <td className="px-3 py-2 font-mono text-muted-foreground tabular-nums">{tool.lastVerifiedAt ?? "Not verified"}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{reasons.join(", ")}</td>
+                    <td className="px-3 py-2 font-mono text-muted-foreground tabular-nums">
+                      {tool.lastVerifiedAt ? `${tool.lastVerifiedAt} (${getVerificationAgeLabel(tool.lastVerifiedAt)})` : getVerificationAgeLabel(null)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -171,6 +182,8 @@ export function AdminDashboard({ categories, tools, sources, configured }: Admin
             Save draft
           </button>
         </div>
+
+        {activeTab === "evidence" ? <EvidenceIntake tools={tools} sources={sources} configured={configured} /> : null}
 
         {activeTab === "tools" ? (
           <div className="p-4">
