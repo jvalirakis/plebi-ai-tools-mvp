@@ -4,6 +4,7 @@ import { Search, X } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ToolCard } from "@/components/tool-card";
+import { EmptyStateVisual, StatusBadge, ToolIdentity } from "@/components/visual-identity";
 import {
   evidenceFilterOptions,
   freshnessFilterOptions,
@@ -21,7 +22,7 @@ import {
   type ScoreRange,
   type ToolSort
 } from "@/lib/directory-filters";
-import { evidenceLabels, freshnessLabels, rankingDisclaimer, statusClass } from "@/lib/status";
+import { rankingDisclaimer } from "@/lib/status";
 import type { EvidenceStatus, FreshnessStatus } from "@/lib/types";
 
 type CategoryRankingsProps = {
@@ -80,11 +81,14 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
 
   if (!rankedTools.length) {
     return (
-      <section className="surface rounded-md p-8">
-        <p className="text-sm font-medium">No tools ranked yet</p>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-          This category is ready for data intake. Add tools and source observations in the admin dashboard to populate ranked recommendations.
-        </p>
+      <section className="surface flex gap-4 rounded-md p-8">
+        <EmptyStateVisual kind="search" />
+        <div>
+          <p className="text-sm font-medium">No tools ranked yet</p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+            This category is ready for data intake. Add tools and source observations in the admin dashboard to populate ranked recommendations.
+          </p>
+        </div>
       </section>
     );
   }
@@ -214,24 +218,25 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
                 <tr key={tool.slug} className="transition hover:bg-muted/40">
                   <td className="w-24 px-4 py-4 font-mono text-xs tabular-nums text-muted-foreground">#{rank}</td>
                   <td className="min-w-56 px-4 py-4">
-                    <Link href={`/tools/${tool.slug}`} className="hover:text-primary">
-                      <span className="font-medium">{tool.name}</span>
-                    </Link>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {tool.subcategory} / {tool.pricing}
-                    </p>
+                    <div className="flex items-center gap-3">
+                      <ToolIdentity tool={tool} size="sm" />
+                      <div className="min-w-0">
+                        <Link href={`/tools/${tool.slug}`} className="hover:text-primary">
+                          <span className="font-medium">{tool.name}</span>
+                        </Link>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {tool.subcategory} / {tool.pricing}
+                        </p>
+                      </div>
+                    </div>
                   </td>
                   <td className="min-w-72 px-4 py-4 text-sm leading-6 text-muted-foreground">{tool.bestFor}</td>
                   <td className="px-4 py-4 text-right font-mono text-lg font-semibold tabular-nums">{tool.score}%</td>
                   <td className="px-4 py-4">
-                    <span className={`inline-flex rounded-md border px-2 py-1 text-xs ${statusClass(tool.freshnessStatus)}`}>
-                      {freshnessLabels[tool.freshnessStatus]}
-                    </span>
+                    <StatusBadge status={tool.freshnessStatus} />
                   </td>
                   <td className="px-4 py-4">
-                    <span className={`inline-flex rounded-md border px-2 py-1 text-xs ${statusClass(tool.evidenceStatus)}`}>
-                      {evidenceLabels[tool.evidenceStatus]}
-                    </span>
+                    <StatusBadge status={tool.evidenceStatus} />
                   </td>
                 </tr>
               ))}
@@ -244,28 +249,33 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="font-mono text-xs text-muted-foreground">Plebi rank #{rank}</p>
-                  <h3 className="mt-1 text-base font-semibold">{tool.name}</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {tool.subcategory} / {tool.pricing}
-                  </p>
+                  <div className="mt-2 flex items-center gap-3">
+                    <ToolIdentity tool={tool} size="sm" />
+                    <div>
+                      <h3 className="text-base font-semibold">{tool.name}</h3>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {tool.subcategory} / {tool.pricing}
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 <p className="font-mono text-xl font-semibold tabular-nums">{tool.score}%</p>
               </div>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">{tool.bestFor}</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(tool.freshnessStatus)}`}>
-                  {freshnessLabels[tool.freshnessStatus]}
-                </span>
-                <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(tool.evidenceStatus)}`}>
-                  {evidenceLabels[tool.evidenceStatus]}
-                </span>
+                <StatusBadge status={tool.freshnessStatus} />
+                <StatusBadge status={tool.evidenceStatus} />
               </div>
             </Link>
           ))}
         </div>
         {!filteredEntries.length ? (
-          <div className="border-t border-border px-4 py-8 text-sm text-muted-foreground">
-            No tools match these filters. Try clearing one or more filters.
+          <div className="flex gap-4 border-t border-border px-4 py-8">
+            <EmptyStateVisual kind="search" />
+            <div>
+              <p className="text-sm font-medium">No tools match these filters</p>
+              <p className="mt-1 text-sm text-muted-foreground">Try clearing one or more filters.</p>
+            </div>
           </div>
         ) : null}
       </section>

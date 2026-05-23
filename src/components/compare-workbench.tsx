@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { MetricBars } from "@/components/metric-bars";
 import { ScoreRing } from "@/components/score-ring";
+import { EmptyStateVisual, StatusBadge, ToolIdentity } from "@/components/visual-identity";
 import { getCategoryName, getToolSearchText } from "@/lib/directory-filters";
 import { getScoreBreakdown } from "@/lib/scoring";
-import { evidenceLabels, freshnessLabels, statusClass } from "@/lib/status";
 import type { Category, MetricKey, Tool } from "@/lib/types";
 
 type CompareWorkbenchProps = {
@@ -54,10 +54,15 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
   if (!tools.length) {
     return (
       <section className="surface rounded-md p-8">
-        <p className="text-sm font-medium">No tools available to compare</p>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-          Add tool records and source observations before using the comparison workbench.
-        </p>
+        <div className="flex gap-4">
+          <EmptyStateVisual kind="compare" />
+          <div>
+            <p className="text-sm font-medium">No tools available to compare</p>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Add tool records and source observations before using the comparison workbench.
+            </p>
+          </div>
+        </div>
       </section>
     );
   }
@@ -122,11 +127,14 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
           return (
             <article key={tool.slug} className="surface rounded-md p-5">
               <div className="mb-5 flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs text-muted-foreground">{tool.subcategory}</p>
-                  <Link href={`/tools/${tool.slug}`} className="mt-1 block text-xl font-semibold hover:text-primary">
-                    {tool.name}
-                  </Link>
+                <div className="flex min-w-0 gap-3">
+                  <ToolIdentity tool={tool} size="md" />
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">{tool.subcategory}</p>
+                    <Link href={`/tools/${tool.slug}`} className="mt-1 block truncate text-xl font-semibold hover:text-primary">
+                      {tool.name}
+                    </Link>
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -146,12 +154,8 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
                 <p className="mt-1 line-clamp-3 text-sm leading-6">{tool.bestFor}</p>
               </div>
               <div className="mb-5 flex flex-wrap gap-2">
-                <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(tool.freshnessStatus)}`}>
-                  {freshnessLabels[tool.freshnessStatus]}
-                </span>
-                <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(tool.evidenceStatus)}`}>
-                  {evidenceLabels[tool.evidenceStatus]}
-                </span>
+                <StatusBadge status={tool.freshnessStatus} />
+                <StatusBadge status={tool.evidenceStatus} />
               </div>
               <MetricBars metrics={breakdown} includeSignals />
             </article>
@@ -159,8 +163,14 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
         })}
         </div>
       ) : (
-        <section className="surface rounded-md p-8 text-sm leading-6 text-muted-foreground">
-          Select at least one tool to start the comparison.
+        <section className="surface rounded-md p-8">
+          <div className="flex gap-4">
+            <EmptyStateVisual kind="compare" />
+            <div>
+              <p className="text-sm font-medium">No comparison selected</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">Select at least one tool to start the comparison.</p>
+            </div>
+          </div>
         </section>
       )}
 
