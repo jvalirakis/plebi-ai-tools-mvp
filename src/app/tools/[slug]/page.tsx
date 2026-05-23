@@ -7,7 +7,7 @@ import { PollWidget } from "@/components/poll-widget";
 import { ScoreRing } from "@/components/score-ring";
 import { SourceObservations } from "@/components/source-observations";
 import { ToolCard } from "@/components/tool-card";
-import { getDecisionSummary, shouldShowEvidenceCallout } from "@/lib/decision";
+import { getDecisionSummary, getEvidenceCallout, shouldShowEvidenceCallout } from "@/lib/decision";
 import { getEvidenceQualitySummary } from "@/lib/evidence";
 import { getCategories, getRankedTools, getToolBySlug, getTools } from "@/lib/repository";
 import { getConfidenceLevel, getMetricModel, getRankExplanation, getScoreBreakdown } from "@/lib/scoring";
@@ -50,14 +50,16 @@ export default async function ToolPage({ params }: ToolPageProps) {
   const confidence = getConfidenceLevel(tool);
   const evidenceQuality = getEvidenceQualitySummary(tool);
   const decision = getDecisionSummary(tool, category);
+  const evidenceCallout = getEvidenceCallout(tool);
+  const lastVerifiedOrObserved = tool.lastVerifiedAt ?? evidenceQuality.lastObservedAt ?? "Not verified";
   const metricModel = Math.round(getMetricModel(tool.metrics));
 
   return (
     <div className="space-y-7">
-      <section className="surface rounded-md p-6 sm:p-8 lg:p-10">
-        <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+      <section className="surface rounded-md p-5 sm:p-6 lg:p-7">
+        <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
           <div>
-            <div className="mb-4 flex flex-wrap gap-2">
+            <div className="mb-3 flex flex-wrap gap-2">
               {category ? (
                 <Link href={`/categories/${category.slug}`} className="chip rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-primary">
                   {category.name}
@@ -73,10 +75,10 @@ export default async function ToolPage({ params }: ToolPageProps) {
                 {evidenceLabels[tool.evidenceStatus]}
               </span>
             </div>
-            <h1 className="text-4xl font-semibold sm:text-5xl">{tool.name}</h1>
-            <p className="mt-4 max-w-3xl text-lg leading-8 text-muted-foreground">{tool.tagline}</p>
-            <p className="mt-5 max-w-3xl text-sm leading-6 text-muted-foreground">{tool.summary}</p>
-            <div className="mt-6 flex flex-wrap gap-3">
+            <h1 className="text-3xl font-semibold sm:text-4xl">{tool.name}</h1>
+            <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground">{tool.tagline}</p>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{tool.summary}</p>
+            <div className="mt-5 flex flex-wrap gap-3">
               <a
                 href={tool.website}
                 target="_blank"
@@ -100,24 +102,32 @@ export default async function ToolPage({ params }: ToolPageProps) {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-medium uppercase text-muted-foreground">Decision summary</p>
-                <h2 className="mt-2 text-lg font-semibold">Should this be on your shortlist?</h2>
+                <h2 className="mt-2 text-lg font-semibold">Shortlist fit</h2>
               </div>
               <ScoreRing score={breakdown.finalScore} size="sm" />
             </div>
-            <div className="mt-5 grid gap-3 text-sm">
+            <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+              <div className="rounded-md border border-border bg-card px-3 py-2">
+                <p className="text-xs text-muted-foreground">Signals</p>
+                <p className="mt-1 font-mono tabular-nums">{tool.observations.length}</p>
+              </div>
+              <div className="rounded-md border border-border bg-card px-3 py-2">
+                <p className="text-xs text-muted-foreground">Last verified / observed</p>
+                <p className="mt-1 font-mono text-xs tabular-nums">{lastVerifiedOrObserved}</p>
+              </div>
+              <div className="rounded-md border border-border bg-card px-3 py-2">
+                <p className="text-xs text-muted-foreground">Evidence</p>
+                <p className="mt-1 text-sm font-medium">{evidenceLabels[tool.evidenceStatus]}</p>
+              </div>
+              <div className="rounded-md border border-border bg-card px-3 py-2">
+                <p className="text-xs text-muted-foreground">Freshness</p>
+                <p className="mt-1 text-sm font-medium">{freshnessLabels[tool.freshnessStatus]}</p>
+              </div>
+            </div>
+            <div className="mt-3 grid gap-2 text-sm">
               <div className="rounded-md border border-border bg-card px-3 py-2">
                 <p className="text-xs text-muted-foreground">Best for</p>
                 <p className="mt-1 leading-6">{tool.bestFor}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-md border border-border bg-card px-3 py-2">
-                  <p className="text-xs text-muted-foreground">Evidence</p>
-                  <p className="mt-1 text-sm font-medium">{evidenceLabels[tool.evidenceStatus]}</p>
-                </div>
-                <div className="rounded-md border border-border bg-card px-3 py-2">
-                  <p className="text-xs text-muted-foreground">Freshness</p>
-                  <p className="mt-1 text-sm font-medium">{freshnessLabels[tool.freshnessStatus]}</p>
-                </div>
               </div>
               <div className="rounded-md border border-border bg-card px-3 py-2">
                 <p className="text-xs text-muted-foreground">Main strength</p>
@@ -137,12 +147,8 @@ export default async function ToolPage({ params }: ToolPageProps) {
           <div className="flex gap-3">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <div>
-              <p className="text-sm font-semibold">Evidence status needs review</p>
-              <p className="mt-1 text-sm leading-6">
-                This page is marked {freshnessLabels[tool.freshnessStatus].toLowerCase()} and {evidenceLabels[
-                  tool.evidenceStatus
-                ].toLowerCase()}. Treat the ranking as a transparent dataset signal until fresher source observations are reviewed.
-              </p>
+              <p className="text-sm font-semibold">{evidenceCallout.title}</p>
+              <p className="mt-1 text-sm leading-6">{evidenceCallout.copy}</p>
             </div>
           </div>
         </section>
