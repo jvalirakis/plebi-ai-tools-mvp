@@ -1,10 +1,12 @@
 "use client";
 
 import { Check, GitCompareArrows, Plus, X } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { MetricBars } from "@/components/metric-bars";
 import { ScoreRing } from "@/components/score-ring";
 import { getScoreBreakdown } from "@/lib/scoring";
+import { evidenceLabels, freshnessLabels, statusClass } from "@/lib/status";
 import type { MetricKey, Tool } from "@/lib/types";
 
 type CompareWorkbenchProps = {
@@ -36,6 +38,17 @@ export function CompareWorkbench({ tools }: CompareWorkbenchProps) {
     .map((slug) => tools.find((tool) => tool.slug === slug))
     .filter((tool): tool is Tool => Boolean(tool));
 
+  if (!tools.length) {
+    return (
+      <section className="surface rounded-md p-8">
+        <p className="text-sm font-medium">No tools available to compare</p>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+          Add tool records and source observations before using the comparison workbench.
+        </p>
+      </section>
+    );
+  }
+
   function addTool(slug: string) {
     if (!slug || selectedSlugs.includes(slug) || selectedSlugs.length >= 4) {
       return;
@@ -50,7 +63,7 @@ export function CompareWorkbench({ tools }: CompareWorkbenchProps) {
 
   return (
     <div className="space-y-6">
-      <div className="surface rounded-md p-4">
+      <div className="surface sticky top-[65px] z-20 rounded-md bg-card/95 p-4 backdrop-blur-xl">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h2 className="flex items-center gap-2 text-lg font-semibold">
@@ -79,7 +92,8 @@ export function CompareWorkbench({ tools }: CompareWorkbenchProps) {
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      {selectedTools.length ? (
+        <div className="grid gap-4 lg:grid-cols-3 xl:grid-cols-4">
         {selectedTools.map((tool) => {
           const breakdown = getScoreBreakdown(tool);
           return (
@@ -87,7 +101,9 @@ export function CompareWorkbench({ tools }: CompareWorkbenchProps) {
               <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs text-muted-foreground">{tool.subcategory}</p>
-                  <h3 className="mt-1 text-xl font-semibold">{tool.name}</h3>
+                  <Link href={`/tools/${tool.slug}`} className="mt-1 block text-xl font-semibold hover:text-primary">
+                    {tool.name}
+                  </Link>
                 </div>
                 <button
                   type="button"
@@ -102,13 +118,31 @@ export function CompareWorkbench({ tools }: CompareWorkbenchProps) {
               <div className="mb-5 flex justify-center">
                 <ScoreRing score={breakdown.finalScore} />
               </div>
+              <div className="mb-5 rounded-md border border-border bg-background px-3 py-2">
+                <p className="text-xs font-medium uppercase text-muted-foreground">Best for</p>
+                <p className="mt-1 line-clamp-3 text-sm leading-6">{tool.bestFor}</p>
+              </div>
+              <div className="mb-5 flex flex-wrap gap-2">
+                <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(tool.freshnessStatus)}`}>
+                  {freshnessLabels[tool.freshnessStatus]}
+                </span>
+                <span className={`rounded-md border px-2 py-1 text-xs ${statusClass(tool.evidenceStatus)}`}>
+                  {evidenceLabels[tool.evidenceStatus]}
+                </span>
+              </div>
               <MetricBars metrics={breakdown} includeSignals />
             </article>
           );
         })}
-      </div>
+        </div>
+      ) : (
+        <section className="surface rounded-md p-8 text-sm leading-6 text-muted-foreground">
+          Select at least one tool to start the comparison.
+        </section>
+      )}
 
-      <div className="surface overflow-hidden rounded-md">
+      {selectedTools.length ? (
+        <div className="surface overflow-hidden rounded-md">
         <div className="border-b border-border px-4 py-3">
           <h2 className="text-base font-semibold">Decision Matrix</h2>
         </div>
@@ -164,7 +198,8 @@ export function CompareWorkbench({ tools }: CompareWorkbenchProps) {
             </tbody>
           </table>
         </div>
-      </div>
+        </div>
+      ) : null}
 
       {selectedSlugs.length < 4 ? (
         <button

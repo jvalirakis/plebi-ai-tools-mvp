@@ -12,19 +12,20 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const [categories, rankedTools] = await Promise.all([getCategories(), getRankedTools()]);
   const topTools = rankedTools.slice(0, 5);
-  const averageTopScore = Math.round(topTools.reduce((total, tool) => total + tool.score, 0) / topTools.length);
+  const averageTopScore = topTools.length ? Math.round(topTools.reduce((total, tool) => total + tool.score, 0) / topTools.length) : 0;
   const observationCount = rankedTools.reduce((total, tool) => total + tool.observations.length, 0);
 
   return (
-    <div className="space-y-8">
-      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="surface rounded-md p-6 sm:p-8">
+    <div className="space-y-10">
+      <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="surface rounded-md p-6 sm:p-8 lg:p-10">
           <div className="mb-6 flex flex-wrap gap-2">
             <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{rankedTools.length} AI tools</span>
             <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{categories.length} categories</span>
             <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">Transparent scoring</span>
             <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{observationCount} evidence signals</span>
           </div>
+          <p className="mb-3 text-sm font-medium text-primary">AI tools intelligence</p>
           <h1 className="max-w-4xl break-words text-3xl font-semibold leading-tight sm:text-5xl">
             AI tool rankings with evidence behind every score.
           </h1>
@@ -48,7 +49,7 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="surface rounded-md p-6">
+        <div className="surface rounded-md p-6 lg:p-7">
           <div className="mb-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Top cohort average</p>
@@ -118,11 +119,17 @@ export default async function HomePage() {
             Compare all
           </Link>
         </div>
-        <div className="grid gap-4">
-          {topTools.map((tool, index) => (
-            <ToolCard key={tool.slug} tool={tool} rank={index + 1} compact={index > 1} />
-          ))}
-        </div>
+        {topTools.length ? (
+          <div className="grid gap-4">
+            {topTools.map((tool, index) => (
+              <ToolCard key={tool.slug} tool={tool} rank={index + 1} compact={index > 1} />
+            ))}
+          </div>
+        ) : (
+          <div className="surface rounded-md p-8 text-sm leading-6 text-muted-foreground">
+            No ranked tools are available yet. Once tool and source records are loaded, Plebi will surface market leaders here.
+          </div>
+        )}
       </section>
     </div>
   );

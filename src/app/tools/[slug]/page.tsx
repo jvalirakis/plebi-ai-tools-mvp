@@ -9,7 +9,7 @@ import { SourceObservations } from "@/components/source-observations";
 import { ToolCard } from "@/components/tool-card";
 import { getEvidenceQualitySummary } from "@/lib/evidence";
 import { getCategories, getRelatedTools, getToolBySlug, getTools } from "@/lib/repository";
-import { getConfidenceLevel, getRankExplanation, getScoreBreakdown } from "@/lib/scoring";
+import { getConfidenceLevel, getMetricModel, getRankExplanation, getScoreBreakdown } from "@/lib/scoring";
 import { evidenceLabels, freshnessLabels, statusClass } from "@/lib/status";
 
 type ToolPageProps = {
@@ -45,11 +45,12 @@ export default async function ToolPage({ params }: ToolPageProps) {
   const breakdown = getScoreBreakdown(tool);
   const confidence = getConfidenceLevel(tool);
   const evidenceQuality = getEvidenceQualitySummary(tool);
+  const metricModel = Math.round(getMetricModel(tool.metrics));
 
   return (
-    <div className="space-y-6">
-      <section className="surface rounded-md p-6 sm:p-8">
-        <div className="grid gap-8 lg:grid-cols-[1fr_220px]">
+    <div className="space-y-7">
+      <section className="surface rounded-md p-6 sm:p-8 lg:p-10">
+        <div className="grid gap-8 lg:grid-cols-[1fr_260px]">
           <div>
             <div className="mb-4 flex flex-wrap gap-2">
               {category ? (
@@ -67,12 +68,12 @@ export default async function ToolPage({ params }: ToolPageProps) {
                 {evidenceLabels[tool.evidenceStatus]}
               </span>
             </div>
-            <h1 className="text-4xl font-semibold">{tool.name}</h1>
+            <h1 className="text-4xl font-semibold sm:text-5xl">{tool.name}</h1>
             <p className="mt-4 max-w-3xl text-lg leading-8 text-muted-foreground">{tool.tagline}</p>
-            <p className="mt-4 max-w-3xl text-sm leading-6">
-              <span className="font-medium text-foreground">Best for: </span>
-              <span className="text-muted-foreground">{tool.bestFor}</span>
-            </p>
+            <div className="mt-5 max-w-3xl rounded-md border border-border bg-background px-4 py-3">
+              <p className="text-xs font-medium uppercase text-muted-foreground">Best for</p>
+              <p className="mt-1 text-sm leading-6">{tool.bestFor}</p>
+            </div>
             <p className="mt-4 max-w-3xl text-sm leading-6 text-muted-foreground">{tool.summary}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a
@@ -88,43 +89,58 @@ export default async function ToolPage({ params }: ToolPageProps) {
                 href="/compare"
                 className="focus-ring inline-flex h-11 items-center rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary"
               >
-                Compare
+                Compare alternatives
               </Link>
             </div>
           </div>
-          <div className="flex justify-start lg:justify-center">
+          <div className="rounded-md border border-border bg-background p-5">
             <ScoreRing score={breakdown.finalScore} size="lg" />
+            <div className="mt-5 grid gap-3 text-sm">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-muted-foreground">Pricing</span>
+                <span className="text-right font-medium">{tool.pricing}</span>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-muted-foreground">Founded</span>
+                <span className="font-mono tabular-nums">{tool.founded}</span>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-muted-foreground">Confidence</span>
+                <span className="font-mono tabular-nums">{confidence}%</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[1fr_360px]">
-        <div className="surface rounded-md p-5">
-          <h2 className="mb-4 text-xl font-semibold">Score Breakdown</h2>
-          <MetricBars metrics={breakdown} includeSignals />
-          <div className="mt-6 rounded-md border border-border bg-background p-4">
-            <p className="text-sm font-semibold">Why this rank?</p>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">{getRankExplanation(tool)}</p>
+      <section className="surface rounded-md p-5 sm:p-6">
+        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+          <div>
+            <h2 className="mb-4 text-xl font-semibold">Plebi Score breakdown</h2>
+            <MetricBars metrics={breakdown} includeSignals />
+            <div className="mt-6 rounded-md border border-border bg-background p-4">
+              <p className="text-sm font-semibold">Why this rank?</p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{getRankExplanation(tool)}</p>
+            </div>
           </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <div className="grid content-start gap-3">
             <div className="rounded-md border border-border bg-background p-3">
-              <p className="text-xs text-muted-foreground">Pricing</p>
-              <p className="mt-1 text-sm font-medium">{tool.pricing}</p>
+              <p className="text-xs text-muted-foreground">Metric model</p>
+              <p className="mt-1 font-mono text-lg tabular-nums">{metricModel}%</p>
             </div>
             <div className="rounded-md border border-border bg-background p-3">
-              <p className="text-xs text-muted-foreground">Founded</p>
-              <p className="mt-1 font-mono text-sm tabular-nums">{tool.founded}</p>
+              <p className="text-xs text-muted-foreground">Source signal</p>
+              <p className="mt-1 font-mono text-lg tabular-nums">{breakdown.sourceSignal}%</p>
             </div>
             <div className="rounded-md border border-border bg-background p-3">
-              <p className="text-xs text-muted-foreground">Observations</p>
-              <p className="mt-1 font-mono text-sm tabular-nums">{tool.observations.length}</p>
+              <p className="text-xs text-muted-foreground">Community sentiment</p>
+              <p className="mt-1 font-mono text-lg tabular-nums">{breakdown.pollSentiment}%</p>
             </div>
           </div>
         </div>
-        <PollWidget poll={tool.poll} />
       </section>
 
-      <section className="surface rounded-md p-5">
+      <section className="surface rounded-md p-5 sm:p-6">
         <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-xl font-semibold">Evidence quality</h2>
@@ -158,7 +174,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
         </div>
       </section>
 
-      <section className="surface rounded-md p-5">
+      <section className="surface rounded-md p-5 sm:p-6">
         <div className="mb-4 flex items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-semibold">Source breakdown</h2>
@@ -169,6 +185,22 @@ export default async function ToolPage({ params }: ToolPageProps) {
           <span className="font-mono text-sm text-muted-foreground tabular-nums">{breakdown.sourceSignal}% signal</span>
         </div>
         <SourceObservations observations={tool.observations} />
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-[360px_1fr]">
+        <PollWidget poll={tool.poll} />
+        <div className="surface rounded-md p-5">
+          <h2 className="text-xl font-semibold">Compare in context</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+            Place {tool.name} beside category alternatives to inspect metric tradeoffs, pricing, source signal, and poll sentiment.
+          </p>
+          <Link
+            href="/compare"
+            className="focus-ring mt-5 inline-flex h-11 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+          >
+            Open compare
+          </Link>
+        </div>
       </section>
 
       <section className="surface overflow-hidden rounded-md">
@@ -195,11 +227,24 @@ export default async function ToolPage({ params }: ToolPageProps) {
             </tbody>
           </table>
         </div>
+        {!tool.scoreSnapshots.length ? (
+          <div className="border-t border-border px-4 py-8 text-sm text-muted-foreground">
+            No score snapshots are available yet. Recalculated admin snapshots will appear here after evidence review.
+          </div>
+        ) : null}
       </section>
 
       {relatedTools.length ? (
         <section>
-          <h2 className="mb-4 text-xl font-semibold">Category Alternatives</h2>
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">Category Alternatives</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Other tools in this category worth comparing before a decision.</p>
+            </div>
+            <Link href="/compare" className="text-sm font-medium text-primary">
+              Compare all
+            </Link>
+          </div>
           <div className="grid gap-4">
             {relatedTools.map((relatedTool) => (
               <ToolCard key={relatedTool.slug} tool={relatedTool} compact />
