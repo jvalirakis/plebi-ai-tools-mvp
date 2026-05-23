@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { CompareWorkbench } from "@/components/compare-workbench";
-import { getTools } from "@/lib/repository";
+import { getCategories, getTools } from "@/lib/repository";
 
 export const metadata: Metadata = {
   title: "Compare AI Tools | Plebi"
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ComparePage() {
-  const tools = await getTools();
+  const [categories, tools] = await Promise.all([getCategories(), getTools()]);
 
   return (
     <div className="space-y-7">
@@ -28,7 +28,7 @@ export default async function ComparePage() {
           </div>
         </div>
       </section>
-      <CompareWorkbench tools={tools} />
+      <CompareWorkbench categories={categories} tools={tools} />
     </div>
   );
 }

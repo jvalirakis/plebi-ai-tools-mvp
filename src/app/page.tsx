@@ -1,6 +1,6 @@
 import { ArrowRight, BarChart3, ShieldCheck, TrendingUp } from "lucide-react";
 import Link from "next/link";
-import { CategoryCard } from "@/components/category-card";
+import { DirectorySearch } from "@/components/directory-search";
 import { ScoreRing } from "@/components/score-ring";
 import { ToolCard } from "@/components/tool-card";
 import { getCategories, getRankedTools } from "@/lib/repository";
@@ -94,19 +94,7 @@ export default async function HomePage() {
         })}
       </section>
 
-      <section>
-        <div className="mb-4 flex items-end justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-semibold">Categories</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Browse ranked markets by workflow and buying context.</p>
-          </div>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {categories.map((category) => (
-            <CategoryCard key={category.slug} {...category} />
-          ))}
-        </div>
-      </section>
+      <DirectorySearch categories={categories} rankedTools={rankedTools} />
 
       <section>
         <div className="mb-4 flex items-end justify-between gap-4">
