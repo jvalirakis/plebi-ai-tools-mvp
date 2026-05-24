@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, X } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CategoryCard } from "@/components/category-card";
 import { ToolCard } from "@/components/tool-card";
@@ -53,7 +54,7 @@ export function DirectorySearch({ categories, rankedTools }: DirectorySearchProp
   }, [categories, matchingTools, normalizedQuery]);
 
   return (
-    <section>
+    <section id="categories" className="scroll-mt-28">
       <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold">Directory</h2>
@@ -110,7 +111,22 @@ export function DirectorySearch({ categories, rankedTools }: DirectorySearchProp
             <EmptyStateVisual kind="search" />
             <div>
               <p className="text-sm font-medium">No tools match these filters</p>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">Try clearing one or more filters.</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">Try clearing the search, browse all tools, or compare known options.</p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary"
+                >
+                  Clear search
+                </button>
+                <Link href="/tools" className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary">
+                  Browse all tools
+                </Link>
+                <Link href="/compare" className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary">
+                  Compare tools
+                </Link>
+              </div>
             </div>
           </div>
         </div>

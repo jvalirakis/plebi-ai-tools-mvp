@@ -56,17 +56,23 @@ export default async function HomePage() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              href="/compare"
+              href="/tools"
               className="focus-ring inline-flex h-11 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
             >
-              Compare leaders
+              Browse AI tools
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/categories/coding-dev"
+              href="/#categories"
               className="focus-ring inline-flex h-11 items-center gap-2 rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary"
             >
-              View coding tools
+              Explore categories
+            </Link>
+            <Link
+              href="/compare"
+              className="focus-ring inline-flex h-11 items-center gap-2 rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary"
+            >
+              Compare tools
             </Link>
           </div>
         </div>

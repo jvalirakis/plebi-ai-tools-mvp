@@ -2,6 +2,7 @@ import { AlertTriangle, ExternalLink, GitCompareArrows } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { JsonLd } from "@/components/json-ld";
 import { MetricBars } from "@/components/metric-bars";
 import { PollWidget } from "@/components/poll-widget";
@@ -15,7 +16,7 @@ import { getEvidenceQualitySummary } from "@/lib/evidence";
 import { getCategories, getRankedTools, getToolBySlug, getTools } from "@/lib/repository";
 import { getConfidenceLevel, getMetricModel, getRankExplanation, getScoreBreakdown } from "@/lib/scoring";
 import { createPageMetadata } from "@/lib/seo/metadata";
-import { createToolJsonLd } from "@/lib/seo/structured-data";
+import { createBreadcrumbListJsonLd, createToolJsonLd } from "@/lib/seo/structured-data";
 import { evidenceLabels, freshnessLabels } from "@/lib/status";
 
 type ToolPageProps = {
@@ -49,6 +50,15 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
   });
 }
 
+function getSafeExternalUrl(value: string) {
+  try {
+    const parsedUrl = new URL(value);
+    return parsedUrl.protocol === "https:" || parsedUrl.protocol === "http:" ? parsedUrl.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export default async function ToolPage({ params }: ToolPageProps) {
   const { slug } = await params;
   const tool = await getToolBySlug(slug);
@@ -71,10 +81,21 @@ export default async function ToolPage({ params }: ToolPageProps) {
   const evidenceCallout = getEvidenceCallout(tool);
   const lastVerifiedOrObserved = tool.lastVerifiedAt ?? evidenceQuality.lastObservedAt ?? "Not verified";
   const metricModel = Math.round(getMetricModel(tool.metrics));
+  const officialWebsite = getSafeExternalUrl(tool.website);
 
   return (
     <div className="space-y-7">
-      <JsonLd data={createToolJsonLd(tool, category)} />
+      <JsonLd
+        data={[
+          createBreadcrumbListJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Tools", path: "/tools" },
+            { name: tool.name, path: `/tools/${tool.slug}` }
+          ]),
+          createToolJsonLd(tool, category)
+        ]}
+      />
+      <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Tools", href: "/tools" }, { label: tool.name }]} />
       <section className="surface rounded-md p-5 sm:p-6 lg:p-7">
         <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
           <div>
@@ -99,22 +120,38 @@ export default async function ToolPage({ params }: ToolPageProps) {
             </div>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{tool.summary}</p>
             <div className="mt-5 flex flex-wrap gap-3">
-              <a
-                href={tool.website}
-                target="_blank"
-                rel="noreferrer"
-                className="focus-ring inline-flex h-11 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
-              >
-                Visit website
-                <ExternalLink className="h-4 w-4" />
-              </a>
+              {officialWebsite ? (
+                <a
+                  href={officialWebsite}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="focus-ring inline-flex h-11 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+                >
+                  Visit official website
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              ) : null}
               <Link
                 href="/compare"
                 className="focus-ring inline-flex h-11 items-center gap-2 rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary"
               >
                 <GitCompareArrows className="h-4 w-4" />
-                Compare with category leader
+                Compare tools
               </Link>
+              <Link
+                href="/tools"
+                className="focus-ring inline-flex h-11 items-center rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary"
+              >
+                View all tools
+              </Link>
+              {category ? (
+                <Link
+                  href={`/categories/${category.slug}`}
+                  className="focus-ring inline-flex h-11 items-center rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary"
+                >
+                  Browse this category
+                </Link>
+              ) : null}
             </div>
           </div>
 
