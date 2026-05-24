@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { MetricBars } from "@/components/metric-bars";
 import { ScoreRing } from "@/components/score-ring";
 import { EmptyStateVisual, StatusBadge, ToolIdentity } from "@/components/visual-identity";
+import { getCompareAttributes } from "@/lib/content";
 import { getCategoryName, getToolSearchText } from "@/lib/directory-filters";
 import { getScoreBreakdown } from "@/lib/scoring";
 import type { Category, MetricKey, Tool } from "@/lib/types";
@@ -24,6 +25,8 @@ const comparisonRows: Array<{ key: MetricKey | "sourceSignal" | "pollSentiment";
   { key: "sourceSignal", label: "Source Signal" },
   { key: "pollSentiment", label: "Poll Sentiment" }
 ];
+
+const decisionAttributeLabels = ["Category", "Use case", "Best for", "Pricing", "Evidence", "Freshness", "Source signals", "Data caution"];
 
 export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
   const [addSearch, setAddSearch] = useState("");
@@ -88,7 +91,9 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
               <GitCompareArrows className="h-5 w-5 text-primary" />
               Comparison Set
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">{selectedTools.length} tools selected</p>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+              {selectedTools.length} tools selected. Compare fit, pricing, evidence quality, freshness, and score inputs before shortlisting.
+            </p>
           </div>
           <div className="grid w-full gap-2 sm:max-w-lg">
             <label className="relative block">
@@ -103,18 +108,18 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
             </label>
             <label className="flex flex-col gap-2">
               <span className="text-xs font-medium text-muted-foreground">{addableTools.length} available matches</span>
-            <select
-              className="focus-ring h-11 rounded-md border border-border bg-background px-3 text-sm"
-              value=""
-              onChange={(event) => addTool(event.target.value)}
-            >
-              <option value="">Select a tool</option>
-              {addableTools.map((tool) => (
-                <option key={tool.slug} value={tool.slug}>
-                  {tool.name}
-                </option>
-              ))}
-            </select>
+              <select
+                className="focus-ring h-11 rounded-md border border-border bg-background px-3 text-sm"
+                value=""
+                onChange={(event) => addTool(event.target.value)}
+              >
+                <option value="">Select a tool</option>
+                {addableTools.map((tool) => (
+                  <option key={tool.slug} value={tool.slug}>
+                    {tool.name}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
         </div>
@@ -122,45 +127,45 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
 
       {selectedTools.length ? (
         <div className="grid gap-4 lg:grid-cols-3 xl:grid-cols-4">
-        {selectedTools.map((tool) => {
-          const breakdown = getScoreBreakdown(tool);
-          return (
-            <article key={tool.slug} className="surface rounded-md p-5 transition duration-200 hover:-translate-y-0.5 hover:border-primary/70 hover:shadow-lg hover:shadow-black/5">
-              <div className="mb-5 flex items-start justify-between gap-4">
-                <div className="flex min-w-0 gap-3">
-                  <ToolIdentity tool={tool} size="md" />
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">{tool.subcategory}</p>
-                    <Link href={`/tools/${tool.slug}`} className="mt-1 block truncate text-xl font-semibold hover:text-primary">
-                      {tool.name}
-                    </Link>
+          {selectedTools.map((tool) => {
+            const breakdown = getScoreBreakdown(tool);
+            return (
+              <article key={tool.slug} className="surface rounded-md p-5 transition duration-200 hover:-translate-y-0.5 hover:border-primary/70 hover:shadow-lg hover:shadow-black/5">
+                <div className="mb-5 flex items-start justify-between gap-4">
+                  <div className="flex min-w-0 gap-3">
+                    <ToolIdentity tool={tool} size="md" />
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">{tool.subcategory}</p>
+                      <Link href={`/tools/${tool.slug}`} className="mt-1 block truncate text-xl font-semibold hover:text-primary">
+                        {tool.name}
+                      </Link>
+                    </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => removeTool(tool.slug)}
+                    className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:border-danger hover:text-danger"
+                    aria-label={`Remove ${tool.name}`}
+                    title={`Remove ${tool.name}`}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeTool(tool.slug)}
-                  className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:border-danger hover:text-danger"
-                  aria-label={`Remove ${tool.name}`}
-                  title={`Remove ${tool.name}`}
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="mb-5 flex justify-center">
-                <ScoreRing score={breakdown.finalScore} />
-              </div>
-              <div className="mb-5 rounded-md border border-border bg-background px-3 py-2">
-                <p className="text-xs font-medium uppercase text-muted-foreground">Best for</p>
-                <p className="mt-1 line-clamp-3 text-sm leading-6">{tool.bestFor}</p>
-              </div>
-              <div className="mb-5 flex flex-wrap gap-2">
-                <StatusBadge status={tool.freshnessStatus} />
-                <StatusBadge status={tool.evidenceStatus} />
-              </div>
-              <MetricBars metrics={breakdown} includeSignals />
-            </article>
-          );
-        })}
+                <div className="mb-5 flex justify-center">
+                  <ScoreRing score={breakdown.finalScore} />
+                </div>
+                <div className="mb-5 rounded-md border border-border bg-background px-3 py-2">
+                  <p className="text-xs font-medium uppercase text-muted-foreground">Best for</p>
+                  <p className="mt-1 line-clamp-3 text-sm leading-6">{tool.bestFor}</p>
+                </div>
+                <div className="mb-5 flex flex-wrap gap-2">
+                  <StatusBadge status={tool.freshnessStatus} />
+                  <StatusBadge status={tool.evidenceStatus} />
+                </div>
+                <MetricBars metrics={breakdown} includeSignals />
+              </article>
+            );
+          })}
         </div>
       ) : (
         <section className="surface rounded-md p-8">
@@ -168,7 +173,9 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
             <EmptyStateVisual kind="compare" />
             <div>
               <p className="text-sm font-medium">No comparison selected</p>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">Select at least one tool to start the comparison.</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                Search for tools above, add up to four, then compare practical fit, pricing notes, freshness, evidence status, and score tradeoffs.
+              </p>
             </div>
           </div>
         </section>
@@ -176,61 +183,83 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
 
       {selectedTools.length ? (
         <div className="surface overflow-hidden rounded-md">
-        <div className="border-b border-border px-4 py-3">
-          <h2 className="text-base font-semibold">Decision Matrix</h2>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 font-medium">Metric</th>
-                {selectedTools.map((tool) => (
-                  <th key={tool.slug} className="px-4 py-3 font-medium">
-                    {tool.name}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {comparisonRows.map((row) => {
-                const rowValues = selectedTools.map((tool) => getScoreBreakdown(tool)[row.key]);
-                const bestValue = Math.max(...rowValues);
-                return (
-                  <tr key={row.key}>
-                    <td className="px-4 py-3 text-muted-foreground">{row.label}</td>
+          <div className="border-b border-border px-4 py-3">
+            <h2 className="text-base font-semibold">Decision Attributes</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Useful, non-score context from existing tool records.</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Attribute</th>
+                  {selectedTools.map((tool) => (
+                    <th key={tool.slug} className="px-4 py-3 font-medium">
+                      {tool.name}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {decisionAttributeLabels.map((label) => (
+                  <tr key={label}>
+                    <td className="px-4 py-3 text-muted-foreground">{label}</td>
                     {selectedTools.map((tool) => {
-                      const value = getScoreBreakdown(tool)[row.key];
+                      const value = getCompareAttributes(tool, categories).find((attribute) => attribute.label === label)?.value ?? "Not available yet";
                       return (
-                        <td key={tool.slug} className="px-4 py-3">
-                          <span className="inline-flex items-center gap-2 font-mono tabular-nums">
-                            {value}
-                            {value === bestValue ? <Check className="h-4 w-4 text-success" /> : null}
-                          </span>
+                        <td key={tool.slug} className="min-w-56 px-4 py-3 text-muted-foreground">
+                          {value}
                         </td>
                       );
                     })}
                   </tr>
-                );
-              })}
-              <tr>
-                <td className="px-4 py-3 text-muted-foreground">Pricing</td>
-                {selectedTools.map((tool) => (
-                  <td key={tool.slug} className="px-4 py-3 text-muted-foreground">
-                    {tool.pricing}
-                  </td>
                 ))}
-              </tr>
-              <tr>
-                <td className="px-4 py-3 text-muted-foreground">Best fit</td>
-                {selectedTools.map((tool) => (
-                  <td key={tool.slug} className="px-4 py-3 text-muted-foreground">
-                    {tool.summary}
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
+      ) : null}
+
+      {selectedTools.length ? (
+        <div className="surface overflow-hidden rounded-md">
+          <div className="border-b border-border px-4 py-3">
+            <h2 className="text-base font-semibold">Decision Matrix</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Metric</th>
+                  {selectedTools.map((tool) => (
+                    <th key={tool.slug} className="px-4 py-3 font-medium">
+                      {tool.name}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {comparisonRows.map((row) => {
+                  const rowValues = selectedTools.map((tool) => getScoreBreakdown(tool)[row.key]);
+                  const bestValue = Math.max(...rowValues);
+                  return (
+                    <tr key={row.key}>
+                      <td className="px-4 py-3 text-muted-foreground">{row.label}</td>
+                      {selectedTools.map((tool) => {
+                        const value = getScoreBreakdown(tool)[row.key];
+                        return (
+                          <td key={tool.slug} className="px-4 py-3">
+                            <span className="inline-flex items-center gap-2 font-mono tabular-nums">
+                              {value}
+                              {value === bestValue ? <Check className="h-4 w-4 text-success" /> : null}
+                            </span>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : null}
 
