@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "audit:content": "node --no-warnings --experimental-strip-types scripts/audit-content-quality.ts",
-    "audit:content:write": "node --no-warnings --experimental-strip-types scripts/audit-content-quality.ts --write"
+    "audit:content:write": "node --no-warnings --experimental-strip-types scripts/audit-content-quality.ts --write",
+    "analytics:validate": "node --no-warnings --experimental-strip-types scripts/validate-analytics.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

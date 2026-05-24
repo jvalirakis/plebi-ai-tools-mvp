@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AnalyticsPageEvent } from "@/components/analytics/analytics-page-event";
+import { TrackableLink } from "@/components/analytics/trackable-link";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { CategoryRankings } from "@/components/category-rankings";
 import { JsonLd } from "@/components/json-ld";
@@ -92,6 +93,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           })
         ]}
       />
+      <AnalyticsPageEvent eventName="category_opened" payload={{ category_slug: category.slug, route: `/categories/${category.slug}`, result_count: rankedTools.length }} />
       <Breadcrumbs
         items={[
           { label: "Home", href: "/" },
@@ -110,15 +112,30 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
           <div>
             <div className="flex flex-wrap gap-3 text-sm">
-              <Link href="/" className="text-primary">
+              <TrackableLink
+                href="/"
+                eventName="nav_link_clicked"
+                eventPayload={{ cta_name: "category_home", route: "/", source_route: `/categories/${category.slug}`, destination_type: "internal" }}
+                className="text-primary"
+              >
                 Home
-              </Link>
-              <Link href="/tools" className="text-primary">
+              </TrackableLink>
+              <TrackableLink
+                href="/tools"
+                eventName="nav_link_clicked"
+                eventPayload={{ cta_name: "category_all_tools", route: "/tools", source_route: `/categories/${category.slug}`, destination_type: "internal" }}
+                className="text-primary"
+              >
                 All tools
-              </Link>
-              <Link href="/compare" className="text-primary">
+              </TrackableLink>
+              <TrackableLink
+                href="/compare"
+                eventName="compare_cta_clicked"
+                eventPayload={{ cta_name: "category_text_compare", route: "/compare", source_route: `/categories/${category.slug}`, category_slug: category.slug }}
+                className="text-primary"
+              >
                 Compare tools
-              </Link>
+              </TrackableLink>
             </div>
             <div className="mt-3 flex items-center gap-4">
               <CategoryVisual category={category} size="lg" />
@@ -134,18 +151,22 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               </p>
             </div>
             <div className="mt-5 flex flex-wrap gap-3">
-              <Link
+              <TrackableLink
                 href="/tools"
+                eventName="nav_link_clicked"
+                eventPayload={{ cta_name: "category_browse_all_tools", route: "/tools", source_route: `/categories/${category.slug}`, category_slug: category.slug }}
                 className="focus-ring inline-flex h-10 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition hover:opacity-90"
               >
                 Browse all tools
-              </Link>
-              <Link
+              </TrackableLink>
+              <TrackableLink
                 href="/compare"
+                eventName="compare_cta_clicked"
+                eventPayload={{ cta_name: "category_compare_tools", route: "/compare", source_route: `/categories/${category.slug}`, category_slug: category.slug }}
                 className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary"
               >
                 Compare tools
-              </Link>
+              </TrackableLink>
             </div>
           </div>
           <div className="rounded-md border border-border bg-background p-4">
@@ -190,9 +211,17 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       {categoryLabels.length ? (
         <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           {categoryLabels.map((item) => (
-            <Link
+            <TrackableLink
               key={item.label}
               href={`/tools/${item.tool.slug}`}
+              eventName="category_tool_clicked"
+              eventPayload={{
+                tool_slug: item.tool.slug,
+                category_slug: category.slug,
+                route: `/tools/${item.tool.slug}`,
+                source_route: `/categories/${category.slug}`,
+                cta_name: item.label
+              }}
               className="surface focus-ring rounded-md p-4 transition hover:border-primary"
             >
               <div className="flex items-start justify-between gap-3">
@@ -211,12 +240,12 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 <StatusBadge status={item.tool.freshnessStatus} />
                 <StatusBadge status={item.tool.evidenceStatus} />
               </div>
-            </Link>
+            </TrackableLink>
           ))}
         </section>
       ) : null}
 
-      <CategoryRankings rankedTools={rankedTools} categoryName={category.name} />
+      <CategoryRankings rankedTools={rankedTools} categoryName={category.name} categorySlug={category.slug} />
     </div>
   );
 }

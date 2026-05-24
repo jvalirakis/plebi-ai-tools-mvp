@@ -1,5 +1,5 @@
 import { ChevronRight } from "lucide-react";
-import Link from "next/link";
+import { TrackableLink } from "@/components/analytics/trackable-link";
 
 export type BreadcrumbItem = {
   label: string;
@@ -29,9 +29,14 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
                   {item.label}
                 </span>
               ) : (
-                <Link href={item.href} className={`${labelClassName} transition hover:bg-muted hover:text-foreground`}>
+                <TrackableLink
+                  href={item.href}
+                  eventName="breadcrumb_clicked"
+                  eventPayload={{ cta_name: item.label, route: item.href, link_type: "breadcrumb", destination_type: "internal" }}
+                  className={`${labelClassName} transition hover:bg-muted hover:text-foreground`}
+                >
                   {item.label}
-                </Link>
+                </TrackableLink>
               )}
               {!isCurrent ? <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> : null}
             </li>

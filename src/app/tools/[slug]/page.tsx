@@ -1,7 +1,9 @@
 import { AlertTriangle, ExternalLink, GitCompareArrows } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AnalyticsPageEvent } from "@/components/analytics/analytics-page-event";
+import { TrackableExternalLink } from "@/components/analytics/trackable-external-link";
+import { TrackableLink } from "@/components/analytics/trackable-link";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { JsonLd } from "@/components/json-ld";
 import { MetricBars } from "@/components/metric-bars";
@@ -95,15 +97,21 @@ export default async function ToolPage({ params }: ToolPageProps) {
           createToolJsonLd(tool, category)
         ]}
       />
+      <AnalyticsPageEvent eventName="tool_detail_viewed" payload={{ tool_slug: tool.slug, category_slug: tool.categorySlug, route: `/tools/${tool.slug}` }} />
       <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Tools", href: "/tools" }, { label: tool.name }]} />
       <section className="surface rounded-md p-5 sm:p-6 lg:p-7">
         <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
           <div>
             <div className="mb-3 flex flex-wrap gap-2">
               {category ? (
-                <Link href={`/categories/${category.slug}`} className="chip rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-primary">
+                <TrackableLink
+                  href={`/categories/${category.slug}`}
+                  eventName="category_opened"
+                  eventPayload={{ category_slug: category.slug, route: `/categories/${category.slug}`, source_route: `/tools/${tool.slug}` }}
+                  className="chip rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-primary"
+                >
                   {category.name}
-                </Link>
+                </TrackableLink>
               ) : null}
               <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{tool.subcategory}</span>
               <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{tool.stage}</span>
@@ -121,36 +129,44 @@ export default async function ToolPage({ params }: ToolPageProps) {
             <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{tool.summary}</p>
             <div className="mt-5 flex flex-wrap gap-3">
               {officialWebsite ? (
-                <a
+                <TrackableExternalLink
                   href={officialWebsite}
                   target="_blank"
                   rel="noreferrer"
+                  eventName="tool_official_site_clicked"
+                  eventPayload={{ tool_slug: tool.slug, category_slug: tool.categorySlug, route: `/tools/${tool.slug}`, link_type: "official_site", destination_type: "external" }}
                   className="focus-ring inline-flex h-11 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
                 >
                   Visit official website
                   <ExternalLink className="h-4 w-4" />
-                </a>
+                </TrackableExternalLink>
               ) : null}
-              <Link
+              <TrackableLink
                 href="/compare"
+                eventName="compare_cta_clicked"
+                eventPayload={{ tool_slug: tool.slug, category_slug: tool.categorySlug, route: "/compare", source_route: `/tools/${tool.slug}`, cta_name: "tool_hero_compare" }}
                 className="focus-ring inline-flex h-11 items-center gap-2 rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary"
               >
                 <GitCompareArrows className="h-4 w-4" />
                 Compare tools
-              </Link>
-              <Link
+              </TrackableLink>
+              <TrackableLink
                 href="/tools"
+                eventName="nav_link_clicked"
+                eventPayload={{ tool_slug: tool.slug, route: "/tools", source_route: `/tools/${tool.slug}`, cta_name: "tool_view_all_tools" }}
                 className="focus-ring inline-flex h-11 items-center rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary"
               >
                 View all tools
-              </Link>
+              </TrackableLink>
               {category ? (
-                <Link
+                <TrackableLink
                   href={`/categories/${category.slug}`}
+                  eventName="category_opened"
+                  eventPayload={{ tool_slug: tool.slug, category_slug: category.slug, route: `/categories/${category.slug}`, source_route: `/tools/${tool.slug}`, cta_name: "tool_browse_category" }}
                   className="focus-ring inline-flex h-11 items-center rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary"
                 >
                   Browse this category
-                </Link>
+                </TrackableLink>
               ) : null}
             </div>
           </div>
@@ -262,10 +278,17 @@ export default async function ToolPage({ params }: ToolPageProps) {
               <div key={field.label} className="rounded-md border border-border bg-background px-3 py-2">
                 <p className="text-xs text-muted-foreground">{field.label}</p>
                 {field.href ? (
-                  <a href={field.href} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 font-medium text-primary">
+                  <TrackableExternalLink
+                    href={field.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    eventName="external_link_clicked"
+                    eventPayload={{ tool_slug: tool.slug, category_slug: tool.categorySlug, route: `/tools/${tool.slug}`, link_type: "trust_field", destination_type: "external", cta_name: field.label }}
+                    className="mt-1 inline-flex items-center gap-1 font-medium text-primary"
+                  >
                     {field.value}
                     <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
+                  </TrackableExternalLink>
                 ) : (
                   <p className="mt-1 leading-6">{field.value}</p>
                 )}
@@ -365,20 +388,30 @@ export default async function ToolPage({ params }: ToolPageProps) {
             and poll sentiment side by side.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
-            <Link
+            <TrackableLink
               href="/compare"
+              eventName="compare_cta_clicked"
+              eventPayload={{ tool_slug: tool.slug, category_slug: tool.categorySlug, route: "/compare", source_route: `/tools/${tool.slug}`, cta_name: "compare_with_category_leader" }}
               className="focus-ring inline-flex h-11 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
             >
               <GitCompareArrows className="h-4 w-4" />
               {comparisonTarget ? `Compare with ${comparisonTarget.name}` : "Compare category alternatives"}
-            </Link>
+            </TrackableLink>
             {comparisonTarget ? (
-              <Link
+              <TrackableLink
                 href={`/tools/${comparisonTarget.slug}`}
+                eventName="tool_card_clicked"
+                eventPayload={{
+                  tool_slug: comparisonTarget.slug,
+                  category_slug: comparisonTarget.categorySlug,
+                  route: `/tools/${comparisonTarget.slug}`,
+                  source_route: `/tools/${tool.slug}`,
+                  cta_name: "view_comparison_target"
+                }}
                 className="focus-ring inline-flex h-11 items-center rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary"
               >
                 View {comparisonTarget.name}
-              </Link>
+              </TrackableLink>
             ) : null}
           </div>
         </div>
@@ -400,9 +433,14 @@ export default async function ToolPage({ params }: ToolPageProps) {
             Use the category page to compare nearby tools with the same freshness, evidence, pricing, and score context.
           </p>
           {category ? (
-            <Link href={`/categories/${category.slug}`} className="mt-4 inline-flex text-sm font-medium text-primary">
+            <TrackableLink
+              href={`/categories/${category.slug}`}
+              eventName="category_opened"
+              eventPayload={{ category_slug: category.slug, tool_slug: tool.slug, route: `/categories/${category.slug}`, source_route: `/tools/${tool.slug}` }}
+              className="mt-4 inline-flex text-sm font-medium text-primary"
+            >
               View {category.name}
-            </Link>
+            </TrackableLink>
           ) : null}
         </div>
       </section>
@@ -414,13 +452,18 @@ export default async function ToolPage({ params }: ToolPageProps) {
               <h2 className="text-xl font-semibold">Alternatives in this category</h2>
               <p className="mt-1 text-sm text-muted-foreground">Other tools in {category?.name ?? tool.categorySlug} worth comparing before a decision.</p>
             </div>
-            <Link href="/compare" className="text-sm font-medium text-primary">
+            <TrackableLink
+              href="/compare"
+              eventName="compare_cta_clicked"
+              eventPayload={{ tool_slug: tool.slug, category_slug: tool.categorySlug, route: "/compare", source_route: `/tools/${tool.slug}`, cta_name: "alternatives_compare_all" }}
+              className="text-sm font-medium text-primary"
+            >
               Compare all
-            </Link>
+            </TrackableLink>
           </div>
           <div className="grid gap-4">
             {alternatives.map((alternative) => (
-              <ToolCard key={alternative.slug} tool={alternative} compact />
+              <ToolCard key={alternative.slug} tool={alternative} compact analyticsSourceRoute={`/tools/${tool.slug}`} />
             ))}
           </div>
         </section>
