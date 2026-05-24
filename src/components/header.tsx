@@ -1,9 +1,10 @@
-import { BarChart3, Database, GitCompareArrows, ShieldCheck } from "lucide-react";
+import { BarChart3, Database, GitCompareArrows, Search, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const navigation = [
   { href: "/", label: "Directory", icon: Database },
+  { href: "/tools", label: "Tools", icon: Search },
   { href: "/compare", label: "Compare", icon: GitCompareArrows },
   { href: "/admin", label: "Admin", icon: ShieldCheck }
 ];
