@@ -2,6 +2,7 @@ import { AlertTriangle, ExternalLink, GitCompareArrows } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { JsonLd } from "@/components/json-ld";
 import { MetricBars } from "@/components/metric-bars";
 import { PollWidget } from "@/components/poll-widget";
 import { ScoreRing } from "@/components/score-ring";
@@ -12,6 +13,8 @@ import { getDecisionSummary, getEvidenceCallout, shouldShowEvidenceCallout } fro
 import { getEvidenceQualitySummary } from "@/lib/evidence";
 import { getCategories, getRankedTools, getToolBySlug, getTools } from "@/lib/repository";
 import { getConfidenceLevel, getMetricModel, getRankExplanation, getScoreBreakdown } from "@/lib/scoring";
+import { createPageMetadata } from "@/lib/seo/metadata";
+import { createToolJsonLd } from "@/lib/seo/structured-data";
 import { evidenceLabels, freshnessLabels } from "@/lib/status";
 
 type ToolPageProps = {
@@ -29,9 +32,20 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
   const { slug } = await params;
   const tool = await getToolBySlug(slug);
 
-  return {
-    title: tool ? `${tool.name} Decision Page | Plebi` : "Tool | Plebi"
-  };
+  if (!tool) {
+    return createPageMetadata({
+      title: "Tool not found",
+      description: "This AI tool profile could not be found.",
+      path: `/tools/${slug}`,
+      noIndex: true
+    });
+  }
+
+  return createPageMetadata({
+    title: tool.name,
+    description: tool.summary || tool.tagline,
+    path: `/tools/${tool.slug}`
+  });
 }
 
 export default async function ToolPage({ params }: ToolPageProps) {
@@ -57,6 +71,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
 
   return (
     <div className="space-y-7">
+      <JsonLd data={createToolJsonLd(tool, category)} />
       <section className="surface rounded-md p-5 sm:p-6 lg:p-7">
         <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
           <div>

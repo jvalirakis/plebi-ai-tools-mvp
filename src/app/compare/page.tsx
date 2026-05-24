@@ -1,10 +1,12 @@
-import type { Metadata } from "next";
 import { CompareWorkbench } from "@/components/compare-workbench";
 import { getCategories, getTools } from "@/lib/repository";
+import { createPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
-  title: "Compare AI Tools | Plebi"
-};
+export const metadata = createPageMetadata({
+  title: "Compare AI Tools",
+  description: "Compare AI tools side by side across Plebi Score inputs, pricing, fit, freshness and source-backed confidence.",
+  path: "/compare"
+});
 
 export const dynamic = "force-dynamic";
 

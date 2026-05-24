@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CategoryRankings } from "@/components/category-rankings";
+import { JsonLd } from "@/components/json-ld";
 import { CategoryVisual, StatusBadge, ToolIdentity } from "@/components/visual-identity";
 import { getCategories, getCategoryBySlug, getRankedTools } from "@/lib/repository";
+import { createPageMetadata } from "@/lib/seo/metadata";
+import { createItemListJsonLd } from "@/lib/seo/structured-data";
 import { getCategoryRefreshLabel } from "@/lib/status";
 import type { Tool } from "@/lib/types";
 
@@ -28,9 +31,20 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   const { slug } = await params;
   const category = await getCategoryBySlug(slug);
 
-  return {
-    title: category ? `${category.name} Rankings | Plebi` : "Category | Plebi"
-  };
+  if (!category) {
+    return createPageMetadata({
+      title: "Category not found",
+      description: "This AI tools category could not be found.",
+      path: `/categories/${slug}`,
+      noIndex: true
+    });
+  }
+
+  return createPageMetadata({
+    title: `${category.name} AI Tools`,
+    description: category.description,
+    path: `/categories/${category.slug}`
+  });
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
@@ -56,6 +70,18 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   return (
     <div className="space-y-7">
+      <JsonLd
+        data={createItemListJsonLd({
+          name: `${category.name} AI tools`,
+          path: `/categories/${category.slug}`,
+          description: category.description,
+          items: rankedTools.map((tool) => ({
+            name: tool.name,
+            path: `/tools/${tool.slug}`,
+            description: tool.summary
+          }))
+        })}
+      />
       <section className="surface rounded-md p-6 sm:p-8 lg:p-10">
         <div className="mb-4 flex flex-wrap gap-2">
           {category.subcategories.map((subcategory) => (
