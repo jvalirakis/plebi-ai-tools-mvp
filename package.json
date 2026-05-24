@@ -8,7 +8,9 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "audit:content": "node --no-warnings --experimental-strip-types scripts/audit-content-quality.ts",
+    "audit:content:write": "node --no-warnings --experimental-strip-types scripts/audit-content-quality.ts --write"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
