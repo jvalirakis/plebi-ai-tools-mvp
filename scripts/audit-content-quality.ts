@@ -33,6 +33,22 @@ type AuditTool = {
   stage: string;
 };
 
+type AuditNewsletterSection = {
+  toolSlugs: string[];
+  categorySlugs: string[];
+};
+
+type AuditNewsletterIssue = {
+  slug: string;
+  title: string;
+  issueDate: string;
+  summary: string;
+  status: string;
+  featuredToolSlugs: string[];
+  featuredCategorySlugs: string[];
+  sections: AuditNewsletterSection[];
+};
+
 type PricingType = "free_freemium" | "paid" | "enterprise" | "open_source" | "usage_based" | "other";
 
 type AuditReport = {
@@ -40,6 +56,7 @@ type AuditReport = {
   scope: string[];
   categoryCount: number;
   toolCount: number;
+  newsletterIssueCount: number;
   counts: Record<Severity, number>;
   pricingTypeCounts: Record<PricingType, number>;
   issues: AuditIssue[];
@@ -51,6 +68,7 @@ const supabaseSeedPath = path.join(rootDir, "supabase", "seed.sql");
 const structuredDataPath = path.join(rootDir, "src", "lib", "seo", "structured-data.ts");
 const directoryFiltersPath = path.join(rootDir, "src", "lib", "directory-filters.ts");
 const contentPath = path.join(rootDir, "src", "lib", "content.ts");
+const newsletterIssuesPath = path.join(rootDir, "src", "lib", "newsletter", "issues.ts");
 const sitemapPath = path.join(rootDir, "src", "app", "sitemap.ts");
 const docsDir = path.join(rootDir, "docs");
 const writeReports = process.argv.includes("--write");
@@ -181,6 +199,11 @@ function asStringArray(record: JsonObject, key: string) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string").map((item) => item.trim()).filter(Boolean) : [];
 }
 
+function asObjectArray(record: JsonObject, key: string) {
+  const value = record[key];
+  return Array.isArray(value) ? value.filter(isObject) : [];
+}
+
 function parseObjectArray(sourceFile: ts.SourceFile, variableName: string) {
   const initializer = getVariableInitializer(sourceFile, variableName);
   const value = initializer ? expressionToValue(initializer) : undefined;
@@ -213,6 +236,22 @@ function toTool(record: JsonObject): AuditTool {
     website: asString(record, "website"),
     pricing: asString(record, "pricing"),
     stage: asString(record, "stage")
+  };
+}
+
+function toNewsletterIssue(record: JsonObject): AuditNewsletterIssue {
+  return {
+    slug: asString(record, "slug"),
+    title: asString(record, "title"),
+    issueDate: asString(record, "issueDate"),
+    summary: asString(record, "summary"),
+    status: asString(record, "status"),
+    featuredToolSlugs: asStringArray(record, "featuredToolSlugs"),
+    featuredCategorySlugs: asStringArray(record, "featuredCategorySlugs"),
+    sections: asObjectArray(record, "sections").map((section) => ({
+      toolSlugs: asStringArray(section, "toolSlugs"),
+      categorySlugs: asStringArray(section, "categorySlugs")
+    }))
   };
 }
 
@@ -287,6 +326,7 @@ function hasText(source: string, pattern: string) {
 
 function createReport() {
   const seedFile = getSourceFile(seedPath);
+  const newsletterFile = getSourceFile(newsletterIssuesPath);
   const structuredDataSource = readSource(structuredDataPath);
   const directoryFiltersSource = readSource(directoryFiltersPath);
   const contentSource = readSource(contentPath);
@@ -294,9 +334,11 @@ function createReport() {
   const supabaseSeedSource = readSource(supabaseSeedPath);
   const categories = parseObjectArray(seedFile, "categories").map(toCategory);
   const tools = parseObjectArray(seedFile, "toolSeeds").map(toTool);
+  const newsletterIssues = parseObjectArray(newsletterFile, "newsletterIssues").map(toNewsletterIssue);
   const bestForBySlug = parseObjectRecord(seedFile, "bestForBySlug");
   const issues: AuditIssue[] = [];
   const categorySlugs = new Set(categories.map((category) => category.slug));
+  const toolSlugs = new Set(tools.map((tool) => tool.slug));
   const pricingTypeCounts: Record<PricingType, number> = {
     free_freemium: 0,
     paid: 0,
@@ -312,6 +354,10 @@ function createReport() {
 
   for (const duplicate of countDuplicates(tools.map((tool) => tool.slug))) {
     addIssue(issues, "error", "duplicate-tool-slug", "Tool slugs must be unique.", duplicate);
+  }
+
+  for (const duplicate of countDuplicates(newsletterIssues.map((issue) => issue.slug))) {
+    addIssue(issues, "error", "duplicate-newsletter-slug", "Newsletter issue slugs must be unique.", duplicate);
   }
 
   for (const category of categories) {
@@ -387,6 +433,42 @@ function createReport() {
     }
   }
 
+  for (const issue of newsletterIssues) {
+    if (!issue.title) {
+      addIssue(issues, "error", "missing-newsletter-title", "Newsletter issue is missing a title.", issue.slug || "unknown issue");
+    }
+
+    if (!issue.slug || !slugPattern.test(issue.slug)) {
+      addIssue(issues, "error", "invalid-newsletter-slug", "Newsletter issue slug is missing or not URL-safe.", issue.title || "unknown issue");
+    }
+
+    if (!issue.summary) {
+      addIssue(issues, "error", "missing-newsletter-summary", "Newsletter issue is missing a summary for cards and metadata.", issue.slug || issue.title);
+    }
+
+    if (!issue.issueDate || Number.isNaN(new Date(`${issue.issueDate}T00:00:00.000Z`).getTime())) {
+      addIssue(issues, "error", "invalid-newsletter-date", "Newsletter issue date is missing or invalid.", issue.slug || issue.title);
+    }
+
+    const linkedToolSlugs = new Set([...issue.featuredToolSlugs, ...issue.sections.flatMap((section) => section.toolSlugs)]);
+    for (const toolSlug of linkedToolSlugs) {
+      if (!toolSlugs.has(toolSlug)) {
+        addIssue(issues, "error", "invalid-newsletter-tool-link", "Newsletter issue links to a missing tool slug.", `${issue.slug}:${toolSlug}`);
+      }
+    }
+
+    const linkedCategorySlugs = new Set([...issue.featuredCategorySlugs, ...issue.sections.flatMap((section) => section.categorySlugs)]);
+    for (const categorySlug of linkedCategorySlugs) {
+      if (!categorySlugs.has(categorySlug)) {
+        addIssue(issues, "error", "invalid-newsletter-category-link", "Newsletter issue links to a missing category slug.", `${issue.slug}:${categorySlug}`);
+      }
+    }
+
+    if (issue.status !== "published" && hasText(sitemapSource, `/newsletter/${issue.slug}`)) {
+      addIssue(issues, "error", "unpublished-newsletter-in-sitemap", "Unpublished newsletter issues should not appear in sitemap output.", issue.slug);
+    }
+  }
+
   const seedSource = readSource(seedPath);
   if (riskyClaimPattern.test(supabaseSeedSource)) {
     addIssue(issues, "warning", "unsupported-superlative-sql", "Supabase seed SQL still contains absolute ranking or guarantee language.", "supabase/seed.sql");
@@ -416,6 +498,12 @@ function createReport() {
     addIssue(issues, "warning", "tools-missing-from-sitemap", "/tools was not detected in sitemap generation.", "src/app/sitemap.ts");
   }
 
+  if (hasText(sitemapSource, "getPublishedNewsletterIssues") && hasText(sitemapSource, "absoluteUrl(\"/newsletter\")")) {
+    addIssue(issues, "info", "newsletter-in-sitemap", "/newsletter and published newsletter issues are included in sitemap generation.", "src/app/sitemap.ts");
+  } else {
+    addIssue(issues, "warning", "newsletter-missing-from-sitemap", "Newsletter archive or issue pages were not detected in sitemap generation.", "src/app/sitemap.ts");
+  }
+
   if (hasText(directoryFiltersSource, "return tool.lastVerifiedAt ?")) {
     addIssue(issues, "info", "last-verified-sort-fallback", "Last-verified sorting falls back to 0 for missing dates, keeping sparse seed data sortable.", "src/lib/directory-filters.ts");
   }
@@ -435,6 +523,7 @@ function createReport() {
     auditDate,
     scope: [
       "src/lib/seed.ts",
+      "src/lib/newsletter/issues.ts",
       "supabase/seed.sql",
       "src/lib/content.ts",
       "src/lib/directory-filters.ts",
@@ -443,6 +532,7 @@ function createReport() {
     ],
     categoryCount: categories.length,
     toolCount: tools.length,
+    newsletterIssueCount: newsletterIssues.length,
     counts,
     pricingTypeCounts,
     issues
@@ -465,6 +555,7 @@ Audit date: ${report.auditDate}
 
 - Categories checked: ${report.categoryCount}
 - Tools checked: ${report.toolCount}
+- Newsletter issues checked: ${report.newsletterIssueCount}
 - Errors: ${report.counts.error}
 - Warnings: ${report.counts.warning}
 - Info: ${report.counts.info}
@@ -499,6 +590,7 @@ console.log("Content quality audit");
 console.log(`Date: ${report.auditDate}`);
 console.log(`Tools: ${report.toolCount}`);
 console.log(`Categories: ${report.categoryCount}`);
+console.log(`Newsletter issues: ${report.newsletterIssueCount}`);
 console.log(`Errors: ${report.counts.error}`);
 console.log(`Warnings: ${report.counts.warning}`);
 console.log(`Info: ${report.counts.info}`);

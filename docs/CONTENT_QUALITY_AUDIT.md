@@ -1,10 +1,11 @@
 # Content Quality Audit
 
-Audit date: 2026-05-24
+Audit date: 2026-05-25
 
 ## Scope
 
 - Static seed data in `src/lib/seed.ts`
+- Static newsletter issue data in `src/lib/newsletter/issues.ts`
 - Supabase seed insert data in `supabase/seed.sql`
 - Content fallbacks in `src/lib/content.ts`
 - Tool filtering and sorting helpers in `src/lib/directory-filters.ts`
@@ -14,7 +15,9 @@ Audit date: 2026-05-24
 ## Checks Performed
 
 - Duplicate tool and category slugs
+- Duplicate newsletter issue slugs
 - Missing names, slugs, summaries, taglines, subcategories, pricing notes, and best-for notes
+- Missing newsletter titles, summaries, issue dates, or invalid linked tool/category slugs
 - Invalid tool website URLs
 - Tools mapped to missing categories
 - Empty categories
@@ -22,6 +25,7 @@ Audit date: 2026-05-24
 - Search/filter/compare fallback fields
 - Metadata description length risk
 - Sitemap inclusion for `/tools`
+- Sitemap inclusion for `/newsletter` and published newsletter issues
 - JSON-LD safety for offers, ratings, reviews, and visible supported fields
 - Compliance-like or unsupported superlative wording in static and SQL seed content
 
@@ -29,9 +33,10 @@ Audit date: 2026-05-24
 
 - Categories checked: 8
 - Tools checked: 43
+- Newsletter issues checked: 3
 - Errors: 0
 - Warnings: 0
-- Info findings: 8
+- Info findings: 9
 
 The generated machine-readable report is available at `docs/content-quality-audit.json`.
 The generated markdown output is available at `docs/content-quality-audit.generated.md`.
@@ -43,6 +48,7 @@ The generated markdown output is available at `docs/content-quality-audit.genera
 - Replaced "Top matches by current Plebi ranking" with "Highest-ranked matches in this dataset" to avoid overstating current market consensus.
 - Updated README wording so the Supabase seed instructions do not refer to an outdated fixed tool count.
 - Added `pnpm audit:content` and `pnpm audit:content:write` scripts.
+- Extended the audit to cover static newsletter issue slugs, required issue metadata, linked tool/category slugs, and sitemap coverage.
 
 ## Future Improvements
 
@@ -52,7 +58,7 @@ The generated markdown output is available at `docs/content-quality-audit.genera
 
 ## JSON-LD Safety
 
-The audit confirms that current structured data avoids fake offers, aggregate ratings, reviews, prices, and compliance claims. Tool detail JSON-LD uses visible/supported fields only: name, description, URL, application category, and operating system.
+The audit confirms that current structured data avoids fake offers, aggregate ratings, reviews, prices, and compliance claims. Tool detail JSON-LD uses visible/supported fields only: name, description, URL, application category, and operating system. Newsletter issue JSON-LD uses visible/supported fields only: headline, description, issue dates, URL, and main entity page.
 
 ## Validation
 
@@ -68,6 +74,8 @@ HTTP smoke tests all returned `200` for:
 - `/categories/image-generation`
 - `/compare`
 - `/tools/google-gemini-image`
+- `/newsletter`
+- `/newsletter/ai-tool-starter-stack`
 - `/sitemap.xml`
 - `/robots.txt`
 

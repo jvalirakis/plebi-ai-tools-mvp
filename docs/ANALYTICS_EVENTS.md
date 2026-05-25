@@ -30,11 +30,18 @@ The default behavior does not send events anywhere. When `NEXT_PUBLIC_ANALYTICS_
 - `nav_link_clicked`
 - `empty_state_action_clicked`
 - `external_link_clicked`
+- `newsletter_archive_opened`
+- `newsletter_issue_card_clicked`
+- `newsletter_issue_viewed`
+- `newsletter_tool_link_clicked`
+- `newsletter_category_link_clicked`
+- `newsletter_signup_placeholder_clicked`
 
 ## Allowed Payload Fields
 
 - `tool_slug`
 - `category_slug`
+- `issue_slug`
 - `route`
 - `filter_name`
 - `filter_value`
@@ -71,6 +78,7 @@ Search instrumentation records controlled metadata such as `query_present` and r
 - Category page open events, category CTAs, category ranking filters, sort, search submit, table/card tool clicks, and empty-state actions
 - Tool detail view events, official website clicks, compare CTAs, category links, external trust links, and alternative tool links
 - Compare page open events, compare search submit, add-tool actions, selected tool links, and empty-state actions
+- Newsletter archive views, issue card clicks, issue views, linked tool/category clicks, compare CTAs, and placeholder signup interactions
 
 ## Debug Logging
 

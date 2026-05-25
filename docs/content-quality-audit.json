@@ -1,7 +1,8 @@
 {
-  "auditDate": "2026-05-24",
+  "auditDate": "2026-05-25",
   "scope": [
     "src/lib/seed.ts",
+    "src/lib/newsletter/issues.ts",
     "supabase/seed.sql",
     "src/lib/content.ts",
     "src/lib/directory-filters.ts",
@@ -10,10 +11,11 @@
   ],
   "categoryCount": 8,
   "toolCount": 43,
+  "newsletterIssueCount": 3,
   "counts": {
     "error": 0,
     "warning": 0,
-    "info": 8
+    "info": 9
   },
   "pricingTypeCounts": {
     "free_freemium": 22,
@@ -52,6 +54,12 @@
       "severity": "info",
       "code": "tools-in-sitemap",
       "message": "/tools remains included in sitemap generation.",
+      "target": "src/app/sitemap.ts"
+    },
+    {
+      "severity": "info",
+      "code": "newsletter-in-sitemap",
+      "message": "/newsletter and published newsletter issues are included in sitemap generation.",
       "target": "src/app/sitemap.ts"
     },
     {

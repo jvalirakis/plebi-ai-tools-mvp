@@ -1,4 +1,5 @@
 import { absoluteUrl, siteConfig, truncateDescription } from "@/lib/seo/metadata";
+import type { NewsletterIssue } from "@/lib/newsletter/issues";
 import type { Category, Tool } from "@/lib/types";
 
 export type JsonLdValue = string | number | boolean | null | JsonLdObject | JsonLdValue[];
@@ -80,5 +81,20 @@ export function createToolJsonLd(tool: Tool, category?: Category): JsonLdObject 
     mainEntityOfPage: canonicalUrl,
     applicationCategory: category?.name ?? tool.subcategory,
     operatingSystem: "Web"
+  };
+}
+
+export function createNewsletterArticleJsonLd(issue: NewsletterIssue): JsonLdObject {
+  const canonicalUrl = absoluteUrl(`/newsletter/${issue.slug}`);
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: issue.title,
+    description: truncateDescription(issue.summary),
+    datePublished: issue.issueDate,
+    dateModified: issue.issueDate,
+    url: canonicalUrl,
+    mainEntityOfPage: canonicalUrl
   };
 }
