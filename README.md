@@ -40,3 +40,15 @@ Severity meanings:
 - `error`: publish-blocking data integrity issue, such as duplicate slugs or invalid core URLs.
 - `warning`: non-blocking content gap that should be reviewed before treating rankings as source-verified.
 - `info`: documented fallback, safety check, or intentional derived-content behavior.
+
+## Analytics Instrumentation
+
+Plebi includes a small privacy-first analytics wrapper for product interaction events. It is provider-agnostic and no-op by default: no cookies, no fingerprinting, no user IDs, and no personal data are collected.
+
+Optional local debug logging:
+
+```bash
+NEXT_PUBLIC_ANALYTICS_DEBUG=true pnpm dev
+```
+
+When enabled, sanitized events are logged in the browser console. Run `pnpm analytics:validate` to verify event-name and payload sanitization rules. See `docs/ANALYTICS_EVENTS.md` for the event catalog, allowed payload fields, forbidden fields, and future adapter guidance.

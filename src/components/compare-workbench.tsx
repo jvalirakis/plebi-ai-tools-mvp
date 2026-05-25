@@ -1,14 +1,15 @@
 "use client";
 
 import { Check, GitCompareArrows, Plus, Search, X } from "lucide-react";
-import Link from "next/link";
 import { useMemo, useState } from "react";
+import { TrackableLink } from "@/components/analytics/trackable-link";
 import { MetricBars } from "@/components/metric-bars";
 import { ScoreRing } from "@/components/score-ring";
 import { EmptyStateVisual, StatusBadge, ToolIdentity } from "@/components/visual-identity";
 import { getCompareAttributes } from "@/lib/content";
 import { getCategoryName, getToolSearchText } from "@/lib/directory-filters";
 import { getScoreBreakdown } from "@/lib/scoring";
+import { trackEvent } from "@/lib/analytics/track";
 import type { Category, MetricKey, Tool } from "@/lib/types";
 
 type CompareWorkbenchProps = {
@@ -65,12 +66,22 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
               Add tool records and source observations before using the comparison workbench.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
-              <Link href="/tools" className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary">
+              <TrackableLink
+                href="/tools"
+                eventName="empty_state_action_clicked"
+                eventPayload={{ cta_name: "browse_all_tools", route: "/tools", source_route: "/compare", destination_type: "internal" }}
+                className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary"
+              >
                 Browse all tools
-              </Link>
-              <Link href="/#categories" className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary">
+              </TrackableLink>
+              <TrackableLink
+                href="/#categories"
+                eventName="empty_state_action_clicked"
+                eventPayload={{ cta_name: "explore_categories", route: "/", source_route: "/compare", destination_type: "internal" }}
+                className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary"
+              >
                 Explore categories
-              </Link>
+              </TrackableLink>
             </div>
           </div>
         </div>
@@ -84,10 +95,25 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
     }
 
     setSelectedSlugs((current) => [...current, slug]);
+    trackEvent("compare_cta_clicked", {
+      route: "/compare",
+      cta_name: "add_tool",
+      tool_slug: slug,
+      result_count: selectedSlugs.length + 1
+    });
   }
 
   function removeTool(slug: string) {
     setSelectedSlugs((current) => current.filter((selectedSlug) => selectedSlug !== slug));
+  }
+
+  function submitSearch() {
+    trackEvent("tool_search_submitted", {
+      route: "/compare",
+      filter_name: "compare_add_tool_search",
+      filter_value: addSearch.trim() ? "query_present" : "empty",
+      result_count: addableTools.length
+    });
   }
 
   return (
@@ -110,6 +136,12 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
               <input
                 value={addSearch}
                 onChange={(event) => setAddSearch(event.target.value)}
+                onBlur={submitSearch}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    submitSearch();
+                  }
+                }}
                 placeholder="Search tools, category, pricing, fit..."
                 className="focus-ring h-11 w-full rounded-md border border-border bg-background pl-10 pr-3 text-sm"
               />
@@ -144,9 +176,14 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
                     <ToolIdentity tool={tool} size="md" />
                     <div className="min-w-0">
                       <p className="text-xs text-muted-foreground">{tool.subcategory}</p>
-                      <Link href={`/tools/${tool.slug}`} className="mt-1 block truncate text-xl font-semibold hover:text-primary">
+                      <TrackableLink
+                        href={`/tools/${tool.slug}`}
+                        eventName="tool_card_clicked"
+                        eventPayload={{ tool_slug: tool.slug, category_slug: tool.categorySlug, route: `/tools/${tool.slug}`, source_route: "/compare" }}
+                        className="mt-1 block truncate text-xl font-semibold hover:text-primary"
+                      >
                         {tool.name}
-                      </Link>
+                      </TrackableLink>
                     </div>
                   </div>
                   <button
@@ -185,12 +222,22 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
                 Search for tools above, add up to four, then compare practical fit, pricing notes, freshness, evidence status, and score tradeoffs.
               </p>
               <div className="mt-4 flex flex-wrap gap-3">
-                <Link href="/tools" className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary">
+                <TrackableLink
+                  href="/tools"
+                  eventName="empty_state_action_clicked"
+                  eventPayload={{ cta_name: "browse_all_tools", route: "/tools", source_route: "/compare", destination_type: "internal" }}
+                  className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary"
+                >
                   Browse all tools
-                </Link>
-                <Link href="/#categories" className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary">
+                </TrackableLink>
+                <TrackableLink
+                  href="/#categories"
+                  eventName="empty_state_action_clicked"
+                  eventPayload={{ cta_name: "explore_categories", route: "/", source_route: "/compare", destination_type: "internal" }}
+                  className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary"
+                >
                   Explore categories
-                </Link>
+                </TrackableLink>
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { ArrowRight, GitCompareArrows, ListFilter, Search } from "lucide-react";
-import Link from "next/link";
+import { TrackableLink } from "@/components/analytics/trackable-link";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { JsonLd } from "@/components/json-ld";
 import { ToolsBrowser } from "@/components/tools-browser";
@@ -52,23 +52,27 @@ export default async function ToolsPage() {
               and what to check before using it.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link
+              <TrackableLink
                 href="/compare"
+                eventName="compare_cta_clicked"
+                eventPayload={{ cta_name: "tools_hero_compare", route: "/compare", source_route: "/tools", destination_type: "internal" }}
                 className="focus-ring inline-flex h-11 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
               >
                 <GitCompareArrows className="h-4 w-4" />
                 Compare tools
-              </Link>
+              </TrackableLink>
               <a href="#tools-directory-heading" className="focus-ring inline-flex h-11 items-center gap-2 rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary">
                 Browse all tools
                 <ArrowRight className="h-4 w-4" />
               </a>
-              <Link
+              <TrackableLink
                 href="/#categories"
+                eventName="nav_link_clicked"
+                eventPayload={{ cta_name: "tools_hero_explore_categories", route: "/", source_route: "/tools", destination_type: "internal" }}
                 className="focus-ring inline-flex h-11 items-center gap-2 rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary"
               >
                 Explore categories
-              </Link>
+              </TrackableLink>
             </div>
           </div>
           <div className="rounded-md border border-border bg-background p-4">
@@ -104,14 +108,25 @@ export default async function ToolsPage() {
             <p className="text-xs font-medium uppercase text-muted-foreground">Browse by category</p>
             <h2 className="mt-2 text-xl font-semibold">Good starting points</h2>
           </div>
-          <Link href="/" className="text-sm font-medium text-primary">
+          <TrackableLink
+            href="/"
+            eventName="nav_link_clicked"
+            eventPayload={{ cta_name: "tools_view_home_directory", route: "/", source_route: "/tools", destination_type: "internal" }}
+            className="text-sm font-medium text-primary"
+          >
             View home directory
-          </Link>
+          </TrackableLink>
         </div>
         {featuredCategories.length ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {featuredCategories.map((category) => (
-              <Link key={category.slug} href={`/categories/${category.slug}`} className="focus-ring rounded-md border border-border bg-background p-4 transition hover:border-primary">
+              <TrackableLink
+                key={category.slug}
+                href={`/categories/${category.slug}`}
+                eventName="category_opened"
+                eventPayload={{ category_slug: category.slug, route: `/categories/${category.slug}`, source_route: "/tools" }}
+                className="focus-ring rounded-md border border-border bg-background p-4 transition hover:border-primary"
+              >
                 <div className="flex items-center gap-3">
                   <CategoryVisual category={category} size="sm" />
                   <div>
@@ -120,7 +135,7 @@ export default async function ToolsPage() {
                   </div>
                 </div>
                 <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted-foreground">{category.description}</p>
-              </Link>
+              </TrackableLink>
             ))}
           </div>
         ) : (

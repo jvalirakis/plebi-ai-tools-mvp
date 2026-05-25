@@ -1,8 +1,8 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import Link from "next/link";
 import { useMemo, useState } from "react";
+import { TrackableLink } from "@/components/analytics/trackable-link";
 import { EmptyStateVisual } from "@/components/visual-identity";
 import { ToolCard } from "@/components/tool-card";
 import {
@@ -17,6 +17,7 @@ import {
   type RankedTool,
   type ToolSort
 } from "@/lib/directory-filters";
+import { trackEvent } from "@/lib/analytics/track";
 import type { Category } from "@/lib/types";
 
 type ToolsBrowserProps = {
@@ -80,11 +81,52 @@ export function ToolsBrowser({ categories, rankedTools }: ToolsBrowserProps) {
   );
   const hasActiveFilters = Boolean(query.trim() || categorySlug !== "all" || pricingType !== "all" || sort !== "score_desc");
 
-  function clearFilters() {
+  function clearFilters(source = "filter_bar") {
     setQuery("");
     setCategorySlug("all");
     setPricingType("all");
     setSort("score_desc");
+    trackEvent("tool_filter_changed", {
+      route: "/tools",
+      filter_name: "clear_filters",
+      filter_value: source,
+      result_count: rankedTools.length
+    });
+  }
+
+  function submitSearch() {
+    trackEvent("tool_search_submitted", {
+      route: "/tools",
+      filter_name: "search",
+      filter_value: query.trim() ? "query_present" : "empty",
+      result_count: filteredTools.length
+    });
+  }
+
+  function changeCategory(nextCategorySlug: string) {
+    setCategorySlug(nextCategorySlug);
+    trackEvent("tool_filter_changed", {
+      route: "/tools",
+      filter_name: "category",
+      filter_value: nextCategorySlug
+    });
+  }
+
+  function changePricingType(nextPricingType: StatusFilter<PricingType>) {
+    setPricingType(nextPricingType);
+    trackEvent("tool_filter_changed", {
+      route: "/tools",
+      filter_name: "pricing",
+      filter_value: nextPricingType
+    });
+  }
+
+  function changeSort(nextSort: ToolsSort) {
+    setSort(nextSort);
+    trackEvent("tool_sort_changed", {
+      route: "/tools",
+      sort_key: nextSort
+    });
   }
 
   if (!rankedTools.length) {
@@ -97,12 +139,22 @@ export function ToolsBrowser({ categories, rankedTools }: ToolsBrowserProps) {
             Add tool records and source observations before the public tools directory can show curated options.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link href="/#categories" className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary">
+            <TrackableLink
+              href="/#categories"
+              eventName="empty_state_action_clicked"
+              eventPayload={{ cta_name: "explore_categories", route: "/", source_route: "/tools", destination_type: "internal" }}
+              className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary"
+            >
               Explore categories
-            </Link>
-            <Link href="/compare" className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary">
+            </TrackableLink>
+            <TrackableLink
+              href="/compare"
+              eventName="empty_state_action_clicked"
+              eventPayload={{ cta_name: "open_compare", route: "/compare", source_route: "/tools", destination_type: "internal" }}
+              className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary"
+            >
               Open compare
-            </Link>
+            </TrackableLink>
           </div>
         </div>
       </section>
@@ -123,7 +175,7 @@ export function ToolsBrowser({ categories, rankedTools }: ToolsBrowserProps) {
           </div>
           <button
             type="button"
-            onClick={clearFilters}
+            onClick={() => clearFilters()}
             disabled={!hasActiveFilters}
             className="focus-ring inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-xs font-medium text-muted-foreground transition hover:border-primary hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -139,13 +191,19 @@ export function ToolsBrowser({ categories, rankedTools }: ToolsBrowserProps) {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
+              onBlur={submitSearch}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  submitSearch();
+                }
+              }}
               placeholder="Search tool name, use case, pricing, fit..."
               className="focus-ring h-10 w-full rounded-md border border-border bg-background pl-10 pr-3 text-sm"
             />
           </label>
           <label className="space-y-1 text-xs font-medium text-muted-foreground">
             Category
-            <select value={categorySlug} onChange={(event) => setCategorySlug(event.target.value)} className={fieldClass()}>
+            <select value={categorySlug} onChange={(event) => changeCategory(event.target.value)} className={fieldClass()}>
               <option value="all">All categories</option>
               {categories.map((category) => (
                 <option key={category.slug} value={category.slug}>
@@ -156,7 +214,7 @@ export function ToolsBrowser({ categories, rankedTools }: ToolsBrowserProps) {
           </label>
           <label className="space-y-1 text-xs font-medium text-muted-foreground">
             Pricing
-            <select value={pricingType} onChange={(event) => setPricingType(event.target.value as StatusFilter<PricingType>)} className={fieldClass()}>
+            <select value={pricingType} onChange={(event) => changePricingType(event.target.value as StatusFilter<PricingType>)} className={fieldClass()}>
               <option value="all">All pricing</option>
               {pricingTypes.map((type) => (
                 <option key={type} value={type}>
@@ -167,7 +225,7 @@ export function ToolsBrowser({ categories, rankedTools }: ToolsBrowserProps) {
           </label>
           <label className="space-y-1 text-xs font-medium text-muted-foreground">
             Sort
-            <select value={sort} onChange={(event) => setSort(event.target.value as ToolsSort)} className={fieldClass()}>
+            <select value={sort} onChange={(event) => changeSort(event.target.value as ToolsSort)} className={fieldClass()}>
               {sortOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -181,7 +239,7 @@ export function ToolsBrowser({ categories, rankedTools }: ToolsBrowserProps) {
       {filteredTools.length ? (
         <div className="grid gap-4">
           {filteredTools.map((tool) => (
-            <ToolCard key={tool.slug} tool={tool} />
+            <ToolCard key={tool.slug} tool={tool} analyticsSourceRoute="/tools" />
           ))}
         </div>
       ) : (
@@ -190,16 +248,38 @@ export function ToolsBrowser({ categories, rankedTools }: ToolsBrowserProps) {
           <div>
             <p className="text-sm font-medium">No tools match these filters</p>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">Try clearing one or more filters, or browse by category instead.</p>
-            <button type="button" onClick={clearFilters} className="focus-ring mt-4 inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary">
+            <button
+              type="button"
+              onClick={() => {
+                trackEvent("empty_state_action_clicked", {
+                  route: "/tools",
+                  source_route: "/tools",
+                  cta_name: "clear_filters",
+                  result_count: rankedTools.length
+                });
+                clearFilters("empty_state");
+              }}
+              className="focus-ring mt-4 inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary"
+            >
               Clear filters
             </button>
             <div className="mt-3 flex flex-wrap gap-3">
-              <Link href="/#categories" className="text-sm font-medium text-primary">
+              <TrackableLink
+                href="/#categories"
+                eventName="empty_state_action_clicked"
+                eventPayload={{ cta_name: "browse_categories", route: "/", source_route: "/tools", destination_type: "internal" }}
+                className="text-sm font-medium text-primary"
+              >
                 Browse categories
-              </Link>
-              <Link href="/compare" className="text-sm font-medium text-primary">
+              </TrackableLink>
+              <TrackableLink
+                href="/compare"
+                eventName="empty_state_action_clicked"
+                eventPayload={{ cta_name: "compare_tools", route: "/compare", source_route: "/tools", destination_type: "internal" }}
+                className="text-sm font-medium text-primary"
+              >
                 Compare tools
-              </Link>
+              </TrackableLink>
             </div>
           </div>
         </div>
@@ -210,9 +290,14 @@ export function ToolsBrowser({ categories, rankedTools }: ToolsBrowserProps) {
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
           Open the compare page to inspect fit, pricing context, evidence status, freshness, and score tradeoffs side by side.
         </p>
-        <Link href="/compare" className="mt-4 inline-flex text-sm font-medium text-primary">
+        <TrackableLink
+          href="/compare"
+          eventName="compare_cta_clicked"
+          eventPayload={{ cta_name: "tools_listing_compare", route: "/compare", source_route: "/tools", destination_type: "internal" }}
+          className="mt-4 inline-flex text-sm font-medium text-primary"
+        >
           Open compare page
-        </Link>
+        </TrackableLink>
       </div>
     </section>
   );

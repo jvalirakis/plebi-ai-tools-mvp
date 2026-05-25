@@ -1,8 +1,8 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import Link from "next/link";
 import { useMemo, useState } from "react";
+import { TrackableLink } from "@/components/analytics/trackable-link";
 import { ToolCard } from "@/components/tool-card";
 import { EmptyStateVisual, StatusBadge, ToolIdentity } from "@/components/visual-identity";
 import {
@@ -22,12 +22,14 @@ import {
   type ScoreRange,
   type ToolSort
 } from "@/lib/directory-filters";
+import { trackEvent } from "@/lib/analytics/track";
 import { rankingDisclaimer } from "@/lib/status";
 import type { EvidenceStatus, FreshnessStatus } from "@/lib/types";
 
 type CategoryRankingsProps = {
   rankedTools: RankedTool[];
   categoryName: string;
+  categorySlug: string;
 };
 
 type StatusFilter<T extends string> = T | "all";
@@ -36,7 +38,7 @@ function selectClass() {
   return "focus-ring h-10 w-full rounded-md border border-border bg-background px-3 text-sm";
 }
 
-export function CategoryRankings({ rankedTools, categoryName }: CategoryRankingsProps) {
+export function CategoryRankings({ rankedTools, categoryName, categorySlug }: CategoryRankingsProps) {
   const [query, setQuery] = useState("");
   const [freshness, setFreshness] = useState<StatusFilter<FreshnessStatus>>("all");
   const [evidence, setEvidence] = useState<StatusFilter<EvidenceStatus>>("all");
@@ -69,7 +71,7 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
     query.trim() || freshness !== "all" || evidence !== "all" || pricingType !== "all" || scoreRange !== "all" || subcategory !== "all" || sort !== "score_desc"
   );
 
-  function clearFilters() {
+  function clearFilters(source = "filter_bar") {
     setQuery("");
     setFreshness("all");
     setEvidence("all");
@@ -77,6 +79,41 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
     setScoreRange("all");
     setSubcategory("all");
     setSort("score_desc");
+    trackEvent("tool_filter_changed", {
+      route: `/categories/${categorySlug}`,
+      category_slug: categorySlug,
+      filter_name: "clear_filters",
+      filter_value: source,
+      result_count: rankedTools.length
+    });
+  }
+
+  function submitSearch() {
+    trackEvent("tool_search_submitted", {
+      route: `/categories/${categorySlug}`,
+      category_slug: categorySlug,
+      filter_name: "category_search",
+      filter_value: query.trim() ? "query_present" : "empty",
+      result_count: filteredTools.length
+    });
+  }
+
+  function trackFilter(filterName: string, filterValue: string) {
+    trackEvent("tool_filter_changed", {
+      route: `/categories/${categorySlug}`,
+      category_slug: categorySlug,
+      filter_name: filterName,
+      filter_value: filterValue
+    });
+  }
+
+  function changeSort(nextSort: ToolSort) {
+    setSort(nextSort);
+    trackEvent("tool_sort_changed", {
+      route: `/categories/${categorySlug}`,
+      category_slug: categorySlug,
+      sort_key: nextSort
+    });
   }
 
   if (!rankedTools.length) {
@@ -108,7 +145,7 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
               </span>
               <button
                 type="button"
-                onClick={clearFilters}
+                onClick={() => clearFilters()}
                 disabled={!hasActiveFilters}
                 className="focus-ring inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-xs font-medium text-muted-foreground transition hover:border-primary hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -125,6 +162,12 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
+                onBlur={submitSearch}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    submitSearch();
+                  }
+                }}
                 placeholder="Search tools, use cases, pricing, evidence..."
                 className="focus-ring h-10 w-full rounded-md border border-border bg-background pl-10 pr-3 text-sm"
               />
@@ -132,7 +175,7 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
             <label className="sr-only" htmlFor="category-sort">
               Sort tools
             </label>
-            <select id="category-sort" value={sort} onChange={(event) => setSort(event.target.value as ToolSort)} className={selectClass()}>
+            <select id="category-sort" value={sort} onChange={(event) => changeSort(event.target.value as ToolSort)} className={selectClass()}>
               {sortOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -144,7 +187,15 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
             <label className="space-y-1 text-xs font-medium text-muted-foreground">
               Freshness status
-              <select value={freshness} onChange={(event) => setFreshness(event.target.value as StatusFilter<FreshnessStatus>)} className={selectClass()}>
+              <select
+                value={freshness}
+                onChange={(event) => {
+                  const nextValue = event.target.value as StatusFilter<FreshnessStatus>;
+                  setFreshness(nextValue);
+                  trackFilter("freshness", nextValue);
+                }}
+                className={selectClass()}
+              >
                 <option value="all">All freshness</option>
                 {freshnessFilterOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -155,7 +206,15 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
             </label>
             <label className="space-y-1 text-xs font-medium text-muted-foreground">
               Evidence status
-              <select value={evidence} onChange={(event) => setEvidence(event.target.value as StatusFilter<EvidenceStatus>)} className={selectClass()}>
+              <select
+                value={evidence}
+                onChange={(event) => {
+                  const nextValue = event.target.value as StatusFilter<EvidenceStatus>;
+                  setEvidence(nextValue);
+                  trackFilter("evidence", nextValue);
+                }}
+                className={selectClass()}
+              >
                 <option value="all">All evidence</option>
                 {evidenceFilterOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -166,7 +225,15 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
             </label>
             <label className="space-y-1 text-xs font-medium text-muted-foreground">
               Pricing type
-              <select value={pricingType} onChange={(event) => setPricingType(event.target.value as StatusFilter<PricingType>)} className={selectClass()}>
+              <select
+                value={pricingType}
+                onChange={(event) => {
+                  const nextValue = event.target.value as StatusFilter<PricingType>;
+                  setPricingType(nextValue);
+                  trackFilter("pricing", nextValue);
+                }}
+                className={selectClass()}
+              >
                 <option value="all">All pricing</option>
                 {pricingTypes.map((type) => (
                   <option key={type} value={type}>
@@ -177,7 +244,15 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
             </label>
             <label className="space-y-1 text-xs font-medium text-muted-foreground">
               Score range
-              <select value={scoreRange} onChange={(event) => setScoreRange(event.target.value as ScoreRange)} className={selectClass()}>
+              <select
+                value={scoreRange}
+                onChange={(event) => {
+                  const nextValue = event.target.value as ScoreRange;
+                  setScoreRange(nextValue);
+                  trackFilter("score_range", nextValue);
+                }}
+                className={selectClass()}
+              >
                 {scoreRangeOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
@@ -187,7 +262,14 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
             </label>
             <label className="space-y-1 text-xs font-medium text-muted-foreground">
               Subcategory
-              <select value={subcategory} onChange={(event) => setSubcategory(event.target.value)} className={selectClass()}>
+              <select
+                value={subcategory}
+                onChange={(event) => {
+                  setSubcategory(event.target.value);
+                  trackFilter("subcategory", event.target.value === "all" ? "all" : "selected_subcategory");
+                }}
+                className={selectClass()}
+              >
                 <option value="all">All subcategories</option>
                 {subcategories.map((item) => (
                   <option key={item} value={item}>
@@ -221,9 +303,19 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
                     <div className="flex items-center gap-3">
                       <ToolIdentity tool={tool} size="sm" />
                       <div className="min-w-0">
-                        <Link href={`/tools/${tool.slug}`} className="hover:text-primary">
+                        <TrackableLink
+                          href={`/tools/${tool.slug}`}
+                          eventName="category_tool_clicked"
+                          eventPayload={{
+                            tool_slug: tool.slug,
+                            category_slug: categorySlug,
+                            route: `/tools/${tool.slug}`,
+                            source_route: `/categories/${categorySlug}`
+                          }}
+                          className="hover:text-primary"
+                        >
                           <span className="font-medium">{tool.name}</span>
-                        </Link>
+                        </TrackableLink>
                         <p className="mt-1 text-xs text-muted-foreground">
                           {tool.subcategory} / {tool.pricing}
                         </p>
@@ -245,7 +337,18 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
         </div>
         <div className="divide-y divide-border md:hidden">
           {filteredEntries.map(({ tool, rank }) => (
-            <Link key={tool.slug} href={`/tools/${tool.slug}`} className="block p-4">
+            <TrackableLink
+              key={tool.slug}
+              href={`/tools/${tool.slug}`}
+              eventName="category_tool_clicked"
+              eventPayload={{
+                tool_slug: tool.slug,
+                category_slug: categorySlug,
+                route: `/tools/${tool.slug}`,
+                source_route: `/categories/${categorySlug}`
+              }}
+              className="block p-4"
+            >
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="font-mono text-xs text-muted-foreground">Plebi rank #{rank}</p>
@@ -266,7 +369,7 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
                 <StatusBadge status={tool.freshnessStatus} />
                 <StatusBadge status={tool.evidenceStatus} />
               </div>
-            </Link>
+            </TrackableLink>
           ))}
         </div>
         {!filteredEntries.length ? (
@@ -275,6 +378,21 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
             <div>
               <p className="text-sm font-medium">No tools match these filters</p>
               <p className="mt-1 text-sm text-muted-foreground">Try clearing one or more filters.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  trackEvent("empty_state_action_clicked", {
+                    route: `/categories/${categorySlug}`,
+                    category_slug: categorySlug,
+                    cta_name: "clear_filters",
+                    result_count: rankedTools.length
+                  });
+                  clearFilters("empty_state");
+                }}
+                className="focus-ring mt-4 inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary"
+              >
+                Clear filters
+              </button>
             </div>
           </div>
         ) : null}
@@ -283,7 +401,7 @@ export function CategoryRankings({ rankedTools, categoryName }: CategoryRankings
       {filteredEntries.length ? (
         <section className="grid gap-4">
           {filteredEntries.map(({ tool, rank }) => (
-            <ToolCard key={tool.slug} tool={tool} rank={rank} />
+            <ToolCard key={tool.slug} tool={tool} rank={rank} analyticsEventName="category_tool_clicked" analyticsSourceRoute={`/categories/${categorySlug}`} />
           ))}
         </section>
       ) : null}
