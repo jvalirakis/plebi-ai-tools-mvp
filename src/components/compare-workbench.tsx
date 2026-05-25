@@ -64,6 +64,14 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
               Add tool records and source observations before using the comparison workbench.
             </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link href="/tools" className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary">
+                Browse all tools
+              </Link>
+              <Link href="/#categories" className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary">
+                Explore categories
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -176,6 +184,14 @@ export function CompareWorkbench({ categories, tools }: CompareWorkbenchProps) {
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
                 Search for tools above, add up to four, then compare practical fit, pricing notes, freshness, evidence status, and score tradeoffs.
               </p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <Link href="/tools" className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary">
+                  Browse all tools
+                </Link>
+                <Link href="/#categories" className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary">
+                  Explore categories
+                </Link>
+              </div>
             </div>
           </div>
         </section>

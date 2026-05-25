@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { CategoryRankings } from "@/components/category-rankings";
 import { JsonLd } from "@/components/json-ld";
 import { CategoryVisual, StatusBadge, ToolIdentity } from "@/components/visual-identity";
 import { getCategoryDecisionContent } from "@/lib/content";
 import { getCategories, getCategoryBySlug, getRankedTools } from "@/lib/repository";
 import { createPageMetadata } from "@/lib/seo/metadata";
-import { createItemListJsonLd } from "@/lib/seo/structured-data";
+import { createBreadcrumbListJsonLd, createItemListJsonLd } from "@/lib/seo/structured-data";
 import { getCategoryRefreshLabel } from "@/lib/status";
 import type { Tool } from "@/lib/types";
 
@@ -73,16 +74,30 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   return (
     <div className="space-y-7">
       <JsonLd
-        data={createItemListJsonLd({
-          name: `${category.name} AI tools`,
-          path: `/categories/${category.slug}`,
-          description: category.description,
-          items: rankedTools.map((tool) => ({
-            name: tool.name,
-            path: `/tools/${tool.slug}`,
-            description: tool.summary
-          }))
-        })}
+        data={[
+          createBreadcrumbListJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Categories", path: "/#categories" },
+            { name: category.name, path: `/categories/${category.slug}` }
+          ]),
+          createItemListJsonLd({
+            name: `${category.name} AI tools`,
+            path: `/categories/${category.slug}`,
+            description: category.description,
+            items: rankedTools.map((tool) => ({
+              name: tool.name,
+              path: `/tools/${tool.slug}`,
+              description: tool.summary
+            }))
+          })
+        ]}
+      />
+      <Breadcrumbs
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Categories", href: "/#categories" },
+          { label: category.name }
+        ]}
       />
       <section className="surface rounded-md p-6 sm:p-8 lg:p-10">
         <div className="mb-4 flex flex-wrap gap-2">
@@ -96,10 +111,13 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           <div>
             <div className="flex flex-wrap gap-3 text-sm">
               <Link href="/" className="text-primary">
-                Directory
+                Home
               </Link>
               <Link href="/tools" className="text-primary">
                 All tools
+              </Link>
+              <Link href="/compare" className="text-primary">
+                Compare tools
               </Link>
             </div>
             <div className="mt-3 flex items-center gap-4">
@@ -114,6 +132,20 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               <p className="inline-flex rounded-md border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
                 {rankedTools.length} ranked tools
               </p>
+            </div>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link
+                href="/tools"
+                className="focus-ring inline-flex h-10 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+              >
+                Browse all tools
+              </Link>
+              <Link
+                href="/compare"
+                className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary"
+              >
+                Compare tools
+              </Link>
             </div>
           </div>
           <div className="rounded-md border border-border bg-background p-4">

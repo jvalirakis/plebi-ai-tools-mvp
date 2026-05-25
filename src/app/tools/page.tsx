@@ -1,11 +1,12 @@
 import { ArrowRight, GitCompareArrows, ListFilter, Search } from "lucide-react";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { JsonLd } from "@/components/json-ld";
 import { ToolsBrowser } from "@/components/tools-browser";
 import { CategoryVisual } from "@/components/visual-identity";
 import { getCategories, getRankedTools } from "@/lib/repository";
 import { createPageMetadata } from "@/lib/seo/metadata";
-import { createItemListJsonLd } from "@/lib/seo/structured-data";
+import { createBreadcrumbListJsonLd, createItemListJsonLd } from "@/lib/seo/structured-data";
 
 export const dynamic = "force-dynamic";
 
@@ -22,16 +23,24 @@ export default async function ToolsPage() {
   return (
     <div className="space-y-8">
       <JsonLd
-        data={createItemListJsonLd({
-          name: "Plebi AI tools",
-          path: "/tools",
-          description: "Curated AI tools by category, use case, pricing context, and practical fit.",
-          items: rankedTools.map((tool) => ({
-            name: tool.name,
-            path: `/tools/${tool.slug}`
-          }))
-        })}
+        data={[
+          createBreadcrumbListJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Tools", path: "/tools" }
+          ]),
+          createItemListJsonLd({
+            name: "Plebi AI tools",
+            path: "/tools",
+            description: "Curated AI tools by category, use case, pricing context, and practical fit.",
+            items: rankedTools.map((tool) => ({
+              name: tool.name,
+              path: `/tools/${tool.slug}`
+            }))
+          })
+        ]}
       />
+
+      <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Tools" }]} />
 
       <section className="surface rounded-md p-6 sm:p-8 lg:p-10">
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
@@ -54,6 +63,12 @@ export default async function ToolsPage() {
                 Browse all tools
                 <ArrowRight className="h-4 w-4" />
               </a>
+              <Link
+                href="/#categories"
+                className="focus-ring inline-flex h-11 items-center gap-2 rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary"
+              >
+                Explore categories
+              </Link>
             </div>
           </div>
           <div className="rounded-md border border-border bg-background p-4">

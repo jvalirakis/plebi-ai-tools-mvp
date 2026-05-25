@@ -13,6 +13,11 @@ type ItemListEntry = {
   description?: string | null;
 };
 
+type BreadcrumbEntry = {
+  name: string;
+  path: string;
+};
+
 function safeExternalUrl(value: string) {
   try {
     const parsedUrl = new URL(value);
@@ -46,6 +51,19 @@ export function createItemListJsonLd({ name, path, description, items }: { name:
       name: item.name,
       description: item.description ? truncateDescription(item.description) : undefined,
       url: absoluteUrl(item.path)
+    }))
+  };
+}
+
+export function createBreadcrumbListJsonLd(items: BreadcrumbEntry[]): JsonLdObject {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: absoluteUrl(item.path)
     }))
   };
 }

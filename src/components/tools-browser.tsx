@@ -96,6 +96,14 @@ export function ToolsBrowser({ categories, rankedTools }: ToolsBrowserProps) {
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
             Add tool records and source observations before the public tools directory can show curated options.
           </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link href="/#categories" className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary">
+              Explore categories
+            </Link>
+            <Link href="/compare" className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary">
+              Open compare
+            </Link>
+          </div>
         </div>
       </section>
     );
@@ -185,6 +193,14 @@ export function ToolsBrowser({ categories, rankedTools }: ToolsBrowserProps) {
             <button type="button" onClick={clearFilters} className="focus-ring mt-4 inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary">
               Clear filters
             </button>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <Link href="/#categories" className="text-sm font-medium text-primary">
+                Browse categories
+              </Link>
+              <Link href="/compare" className="text-sm font-medium text-primary">
+                Compare tools
+              </Link>
+            </div>
           </div>
         </div>
       )}
