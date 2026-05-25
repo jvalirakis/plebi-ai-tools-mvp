@@ -2,9 +2,11 @@ import { ArrowRight, BarChart3, ShieldCheck, TrendingUp } from "lucide-react";
 import { TrackableLink } from "@/components/analytics/trackable-link";
 import { DirectorySearch } from "@/components/directory-search";
 import { JsonLd } from "@/components/json-ld";
+import { LatestSignals } from "@/components/latest-signals";
 import { LatestNewsletterIssue } from "@/components/newsletter/latest-newsletter-issue";
 import { ScoreRing } from "@/components/score-ring";
 import { ToolCard } from "@/components/tool-card";
+import { listPublicEditorialItems } from "@/lib/editorial/repository";
 import { getLatestNewsletterIssue } from "@/lib/newsletter/issues";
 import { getCategories, getRankedTools } from "@/lib/repository";
 import { scoreFormula } from "@/lib/scoring";
@@ -22,7 +24,7 @@ export const metadata = createPageMetadata({
 });
 
 export default async function HomePage() {
-  const [categories, rankedTools] = await Promise.all([getCategories(), getRankedTools()]);
+  const [categories, rankedTools, editorialItems] = await Promise.all([getCategories(), getRankedTools(), listPublicEditorialItems(3)]);
   const topTools = rankedTools.slice(0, 5);
   const latestIssue = getLatestNewsletterIssue();
   const averageTopScore = topTools.length ? Math.round(topTools.reduce((total, tool) => total + tool.score, 0) / topTools.length) : 0;
@@ -134,6 +136,8 @@ export default async function HomePage() {
       <DirectorySearch categories={categories} rankedTools={rankedTools} />
 
       <LatestNewsletterIssue issue={latestIssue} />
+
+      <LatestSignals items={editorialItems} />
 
       <section>
         <div className="mb-4 flex items-end justify-between gap-4">

@@ -3,6 +3,7 @@
   "scope": [
     "src/lib/seed.ts",
     "src/lib/newsletter/issues.ts",
+    "src/lib/editorial/sources.ts",
     "supabase/seed.sql",
     "src/lib/content.ts",
     "src/lib/directory-filters.ts",
@@ -12,10 +13,12 @@
   "categoryCount": 8,
   "toolCount": 43,
   "newsletterIssueCount": 3,
+  "editorialSourceCount": 8,
+  "activeEditorialSourceCount": 8,
   "counts": {
     "error": 0,
     "warning": 0,
-    "info": 9
+    "info": 10
   },
   "pricingTypeCounts": {
     "free_freemium": 22,
@@ -60,6 +63,12 @@
       "severity": "info",
       "code": "newsletter-in-sitemap",
       "message": "/newsletter and published newsletter issues are included in sitemap generation.",
+      "target": "src/app/sitemap.ts"
+    },
+    {
+      "severity": "info",
+      "code": "signals-in-sitemap",
+      "message": "/signals remains included in sitemap generation.",
       "target": "src/app/sitemap.ts"
     },
     {

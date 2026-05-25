@@ -53,6 +53,24 @@ NEXT_PUBLIC_ANALYTICS_DEBUG=true pnpm dev
 
 When enabled, sanitized events are logged in the browser console. Run `pnpm analytics:validate` to verify event-name and payload sanitization rules. See `docs/ANALYTICS_EVENTS.md` for the event catalog, allowed payload fields, forbidden fields, and future adapter guidance.
 
+## AI Signals Ingestion
+
+Plebi includes a no-AI RSS ingestion foundation for `/signals`. It collects source-provided RSS titles, links, dates, and excerpts from curated feeds only. It does not call AI APIs, generate summaries, scrape full article bodies, or send email.
+
+Apply the editorial ingestion migration before enabling persistence:
+
+```bash
+supabase/migrations/20260525_add_editorial_ingestion.sql
+```
+
+Set server-only `CRON_SECRET` in Vercel, then the protected endpoint can run daily via Vercel Cron:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" https://your-domain.example/api/cron/ingest-editorial-sources
+```
+
+Use `pnpm smoke:routes` after starting the built app to verify `/signals` and the main public routes. See `docs/EDITORIAL_INGESTION.md` for source registry, deduplication, cron, and validation details.
+
 ## Release Validation
 
 Before a production release, run:
@@ -67,9 +85,11 @@ Release docs:
 - `docs/RELEASE_NOTES_PHASE_9.md`
 - `docs/CONTENT_QUALITY_AUDIT.md`
 - `docs/ANALYTICS_EVENTS.md`
+- `docs/EDITORIAL_INGESTION.md`
 
 Production notes:
 
 - Set `NEXT_PUBLIC_SITE_URL` to the production domain for canonical URLs, sitemap, robots, and JSON-LD.
 - Leave `NEXT_PUBLIC_ANALYTICS_DEBUG` unset or `false` in production.
+- Set `CRON_SECRET` as a server-only Vercel env var before enabling daily RSS ingestion.
 - Never expose service-role or private keys with a `NEXT_PUBLIC_` prefix.

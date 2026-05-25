@@ -195,6 +195,78 @@ export type Database = {
         };
         Relationships: [];
       };
+      editorial_sources: {
+        Row: {
+          id: string;
+          name: string;
+          homepage_url: string | null;
+          feed_url: string;
+          source_type: string;
+          category: string | null;
+          region: string | null;
+          language: string | null;
+          reliability_note: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          homepage_url?: string | null;
+          feed_url: string;
+          source_type?: string;
+          category?: string | null;
+          region?: string | null;
+          language?: string | null;
+          reliability_note?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["editorial_sources"]["Insert"]>;
+        Relationships: [];
+      };
+      editorial_items: {
+        Row: {
+          id: string;
+          source_id: string | null;
+          source_name: string;
+          source_url: string | null;
+          original_url: string;
+          original_title: string;
+          original_excerpt: string | null;
+          published_at: string | null;
+          fetched_at: string;
+          content_hash: string | null;
+          category: string | null;
+          region: string | null;
+          language: string | null;
+          status: "candidate" | "selected" | "rejected" | "archived";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          source_id?: string | null;
+          source_name: string;
+          source_url?: string | null;
+          original_url: string;
+          original_title: string;
+          original_excerpt?: string | null;
+          published_at?: string | null;
+          fetched_at?: string;
+          content_hash?: string | null;
+          category?: string | null;
+          region?: string | null;
+          language?: string | null;
+          status?: "candidate" | "selected" | "rejected" | "archived";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["editorial_items"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

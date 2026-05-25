@@ -49,6 +49,17 @@ type AuditNewsletterIssue = {
   sections: AuditNewsletterSection[];
 };
 
+type AuditEditorialSource = {
+  name: string;
+  homepageUrl: string;
+  feedUrl: string;
+  sourceType: string;
+  category: string;
+  region: string;
+  language: string;
+  isActive: boolean;
+};
+
 type PricingType = "free_freemium" | "paid" | "enterprise" | "open_source" | "usage_based" | "other";
 
 type AuditReport = {
@@ -57,6 +68,8 @@ type AuditReport = {
   categoryCount: number;
   toolCount: number;
   newsletterIssueCount: number;
+  editorialSourceCount: number;
+  activeEditorialSourceCount: number;
   counts: Record<Severity, number>;
   pricingTypeCounts: Record<PricingType, number>;
   issues: AuditIssue[];
@@ -69,6 +82,7 @@ const structuredDataPath = path.join(rootDir, "src", "lib", "seo", "structured-d
 const directoryFiltersPath = path.join(rootDir, "src", "lib", "directory-filters.ts");
 const contentPath = path.join(rootDir, "src", "lib", "content.ts");
 const newsletterIssuesPath = path.join(rootDir, "src", "lib", "newsletter", "issues.ts");
+const editorialSourcesPath = path.join(rootDir, "src", "lib", "editorial", "sources.ts");
 const sitemapPath = path.join(rootDir, "src", "app", "sitemap.ts");
 const docsDir = path.join(rootDir, "docs");
 const writeReports = process.argv.includes("--write");
@@ -255,6 +269,19 @@ function toNewsletterIssue(record: JsonObject): AuditNewsletterIssue {
   };
 }
 
+function toEditorialSource(record: JsonObject): AuditEditorialSource {
+  return {
+    name: asString(record, "name"),
+    homepageUrl: asString(record, "homepageUrl"),
+    feedUrl: asString(record, "feedUrl"),
+    sourceType: asString(record, "sourceType"),
+    category: asString(record, "category"),
+    region: asString(record, "region"),
+    language: asString(record, "language"),
+    isActive: record.isActive === true
+  };
+}
+
 function isValidUrl(value: string) {
   try {
     const url = new URL(value);
@@ -327,6 +354,7 @@ function hasText(source: string, pattern: string) {
 function createReport() {
   const seedFile = getSourceFile(seedPath);
   const newsletterFile = getSourceFile(newsletterIssuesPath);
+  const editorialSourcesFile = getSourceFile(editorialSourcesPath);
   const structuredDataSource = readSource(structuredDataPath);
   const directoryFiltersSource = readSource(directoryFiltersPath);
   const contentSource = readSource(contentPath);
@@ -335,6 +363,7 @@ function createReport() {
   const categories = parseObjectArray(seedFile, "categories").map(toCategory);
   const tools = parseObjectArray(seedFile, "toolSeeds").map(toTool);
   const newsletterIssues = parseObjectArray(newsletterFile, "newsletterIssues").map(toNewsletterIssue);
+  const editorialSources = parseObjectArray(editorialSourcesFile, "editorialSources").map(toEditorialSource);
   const bestForBySlug = parseObjectRecord(seedFile, "bestForBySlug");
   const issues: AuditIssue[] = [];
   const categorySlugs = new Set(categories.map((category) => category.slug));
@@ -358,6 +387,14 @@ function createReport() {
 
   for (const duplicate of countDuplicates(newsletterIssues.map((issue) => issue.slug))) {
     addIssue(issues, "error", "duplicate-newsletter-slug", "Newsletter issue slugs must be unique.", duplicate);
+  }
+
+  for (const duplicate of countDuplicates(editorialSources.map((source) => source.name))) {
+    addIssue(issues, "error", "duplicate-editorial-source-name", "Editorial source names must be unique.", duplicate);
+  }
+
+  for (const duplicate of countDuplicates(editorialSources.map((source) => source.feedUrl))) {
+    addIssue(issues, "error", "duplicate-editorial-feed-url", "Editorial source feed URLs must be unique.", duplicate);
   }
 
   for (const category of categories) {
@@ -469,6 +506,28 @@ function createReport() {
     }
   }
 
+  for (const source of editorialSources) {
+    if (!source.name) {
+      addIssue(issues, "error", "missing-editorial-source-name", "Editorial source is missing a name.", source.feedUrl || "unknown source");
+    }
+
+    if (!source.feedUrl || !isValidUrl(source.feedUrl)) {
+      addIssue(issues, "error", "invalid-editorial-feed-url", "Editorial source feed URL is missing or invalid.", source.name || "unknown source");
+    }
+
+    if (source.homepageUrl && !isValidUrl(source.homepageUrl)) {
+      addIssue(issues, "error", "invalid-editorial-homepage-url", "Editorial source homepage URL is invalid.", source.name || source.feedUrl);
+    }
+
+    if (source.sourceType !== "rss") {
+      addIssue(issues, "error", "unsupported-editorial-source-type", "Phase 10.2 supports RSS/Atom sources only.", source.name || source.feedUrl);
+    }
+
+    if (source.isActive && (!source.category || !source.language)) {
+      addIssue(issues, "warning", "editorial-source-metadata-gap", "Active editorial sources should include category and language metadata.", source.name || source.feedUrl);
+    }
+  }
+
   const seedSource = readSource(seedPath);
   if (riskyClaimPattern.test(supabaseSeedSource)) {
     addIssue(issues, "warning", "unsupported-superlative-sql", "Supabase seed SQL still contains absolute ranking or guarantee language.", "supabase/seed.sql");
@@ -504,6 +563,12 @@ function createReport() {
     addIssue(issues, "warning", "newsletter-missing-from-sitemap", "Newsletter archive or issue pages were not detected in sitemap generation.", "src/app/sitemap.ts");
   }
 
+  if (hasText(sitemapSource, "absoluteUrl(\"/signals\")")) {
+    addIssue(issues, "info", "signals-in-sitemap", "/signals remains included in sitemap generation.", "src/app/sitemap.ts");
+  } else {
+    addIssue(issues, "warning", "signals-missing-from-sitemap", "/signals was not detected in sitemap generation.", "src/app/sitemap.ts");
+  }
+
   if (hasText(directoryFiltersSource, "return tool.lastVerifiedAt ?")) {
     addIssue(issues, "info", "last-verified-sort-fallback", "Last-verified sorting falls back to 0 for missing dates, keeping sparse seed data sortable.", "src/lib/directory-filters.ts");
   }
@@ -524,6 +589,7 @@ function createReport() {
     scope: [
       "src/lib/seed.ts",
       "src/lib/newsletter/issues.ts",
+      "src/lib/editorial/sources.ts",
       "supabase/seed.sql",
       "src/lib/content.ts",
       "src/lib/directory-filters.ts",
@@ -533,6 +599,8 @@ function createReport() {
     categoryCount: categories.length,
     toolCount: tools.length,
     newsletterIssueCount: newsletterIssues.length,
+    editorialSourceCount: editorialSources.length,
+    activeEditorialSourceCount: editorialSources.filter((source) => source.isActive).length,
     counts,
     pricingTypeCounts,
     issues
@@ -556,6 +624,8 @@ Audit date: ${report.auditDate}
 - Categories checked: ${report.categoryCount}
 - Tools checked: ${report.toolCount}
 - Newsletter issues checked: ${report.newsletterIssueCount}
+- Editorial sources checked: ${report.editorialSourceCount}
+- Active editorial sources: ${report.activeEditorialSourceCount}
 - Errors: ${report.counts.error}
 - Warnings: ${report.counts.warning}
 - Info: ${report.counts.info}
@@ -591,6 +661,8 @@ console.log(`Date: ${report.auditDate}`);
 console.log(`Tools: ${report.toolCount}`);
 console.log(`Categories: ${report.categoryCount}`);
 console.log(`Newsletter issues: ${report.newsletterIssueCount}`);
+console.log(`Editorial sources: ${report.editorialSourceCount}`);
+console.log(`Active editorial sources: ${report.activeEditorialSourceCount}`);
 console.log(`Errors: ${report.counts.error}`);
 console.log(`Warnings: ${report.counts.warning}`);
 console.log(`Info: ${report.counts.info}`);

@@ -18,7 +18,11 @@ export const analyticsEventNames = [
   "newsletter_issue_viewed",
   "newsletter_tool_link_clicked",
   "newsletter_category_link_clicked",
-  "newsletter_signup_placeholder_clicked"
+  "newsletter_signup_placeholder_clicked",
+  "signals_page_opened",
+  "signal_source_link_clicked",
+  "signal_filter_changed",
+  "signal_search_submitted"
 ] as const;
 
 export type AnalyticsEventName = (typeof analyticsEventNames)[number];

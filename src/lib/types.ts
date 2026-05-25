@@ -93,3 +93,39 @@ export type ScoreBreakdown = MetricBreakdown & {
   pollSentiment: number;
   finalScore: number;
 };
+
+export type EditorialSource = {
+  id?: string;
+  name: string;
+  homepageUrl?: string | null;
+  feedUrl: string;
+  sourceType: "rss";
+  category?: string | null;
+  region?: string | null;
+  language?: string | null;
+  reliabilityNote?: string | null;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type EditorialItemStatus = "candidate" | "selected" | "rejected" | "archived";
+
+export type EditorialItem = {
+  id?: string;
+  sourceId?: string | null;
+  sourceName: string;
+  sourceUrl?: string | null;
+  originalUrl: string;
+  originalTitle: string;
+  originalExcerpt?: string | null;
+  publishedAt?: string | null;
+  fetchedAt?: string;
+  contentHash?: string | null;
+  category?: string | null;
+  region?: string | null;
+  language?: string | null;
+  status: EditorialItemStatus;
+  createdAt?: string;
+  updatedAt?: string;
+};

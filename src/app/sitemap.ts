@@ -67,6 +67,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9
     },
     {
+      url: absoluteUrl("/signals"),
+      lastModified: generatedAt,
+      changeFrequency: "daily",
+      priority: 0.7
+    },
+    {
       url: absoluteUrl("/newsletter"),
       lastModified: latestDate(publicNewsletterIssues.map((issue) => toValidDate(issue.issueDate)), generatedAt),
       changeFrequency: "weekly",

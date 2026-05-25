@@ -62,6 +62,7 @@ Start the built app locally and verify:
 - `/tools/google-gemini-image`
 - `/newsletter`
 - `/newsletter/ai-tool-starter-stack`
+- `/signals`
 - `/sitemap.xml`
 - `/robots.txt`
 
@@ -98,6 +99,7 @@ Set `SMOKE_BASE_URL` to test a preview or production deployment.
 - `/compare` loads.
 - `/newsletter` loads.
 - `/newsletter/ai-tool-starter-stack` loads.
+- `/signals` loads.
 - `/sitemap.xml` loads and contains public pages.
 - `/robots.txt` loads and points to the sitemap.
 - Canonical URLs use the production domain.

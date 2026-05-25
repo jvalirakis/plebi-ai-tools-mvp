@@ -6,6 +6,7 @@ Audit date: 2026-05-25
 
 - Static seed data in `src/lib/seed.ts`
 - Static newsletter issue data in `src/lib/newsletter/issues.ts`
+- Static editorial RSS source data in `src/lib/editorial/sources.ts`
 - Supabase seed insert data in `supabase/seed.sql`
 - Content fallbacks in `src/lib/content.ts`
 - Tool filtering and sorting helpers in `src/lib/directory-filters.ts`
@@ -18,6 +19,7 @@ Audit date: 2026-05-25
 - Duplicate newsletter issue slugs
 - Missing names, slugs, summaries, taglines, subcategories, pricing notes, and best-for notes
 - Missing newsletter titles, summaries, issue dates, or invalid linked tool/category slugs
+- Duplicate editorial source names/feed URLs and invalid editorial source URLs
 - Invalid tool website URLs
 - Tools mapped to missing categories
 - Empty categories
@@ -26,6 +28,7 @@ Audit date: 2026-05-25
 - Metadata description length risk
 - Sitemap inclusion for `/tools`
 - Sitemap inclusion for `/newsletter` and published newsletter issues
+- Sitemap inclusion for `/signals`
 - JSON-LD safety for offers, ratings, reviews, and visible supported fields
 - Compliance-like or unsupported superlative wording in static and SQL seed content
 
@@ -34,9 +37,11 @@ Audit date: 2026-05-25
 - Categories checked: 8
 - Tools checked: 43
 - Newsletter issues checked: 3
+- Editorial sources checked: 8
+- Active editorial sources: 8
 - Errors: 0
 - Warnings: 0
-- Info findings: 9
+- Info findings: 10
 
 The generated machine-readable report is available at `docs/content-quality-audit.json`.
 The generated markdown output is available at `docs/content-quality-audit.generated.md`.
@@ -49,6 +54,7 @@ The generated markdown output is available at `docs/content-quality-audit.genera
 - Updated README wording so the Supabase seed instructions do not refer to an outdated fixed tool count.
 - Added `pnpm audit:content` and `pnpm audit:content:write` scripts.
 - Extended the audit to cover static newsletter issue slugs, required issue metadata, linked tool/category slugs, and sitemap coverage.
+- Extended the audit to cover static editorial RSS sources and `/signals` sitemap coverage.
 
 ## Future Improvements
 

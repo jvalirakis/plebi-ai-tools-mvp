@@ -486,4 +486,25 @@ on conflict (tool_id) do update set
   votes_for = excluded.votes_for,
   votes_against = excluded.votes_against;
 
+insert into public.editorial_sources (name, homepage_url, feed_url, source_type, category, region, language, reliability_note, is_active)
+values
+  ('OpenAI News', 'https://openai.com/news/', 'https://openai.com/news/rss.xml', 'rss', 'Official AI labs', 'Global', 'en', 'Official OpenAI news RSS feed. Source-provided titles and excerpts only.', true),
+  ('Google AI Blog', 'https://blog.google/technology/ai/', 'https://blog.google/technology/ai/rss/', 'rss', 'Official AI labs', 'Global', 'en', 'Official Google AI blog RSS feed. Source-provided titles and excerpts only.', true),
+  ('Google DeepMind Blog', 'https://deepmind.google/blog/', 'https://deepmind.google/blog/rss.xml', 'rss', 'Official AI labs', 'Global', 'en', 'Official Google DeepMind blog RSS feed. Source-provided titles and excerpts only.', true),
+  ('arXiv cs.AI', 'https://arxiv.org/list/cs.AI/recent', 'https://export.arxiv.org/rss/cs.AI', 'rss', 'Developer/research sources', 'Global', 'en', 'arXiv computer science AI category RSS feed. Research metadata, not editorial endorsement.', true),
+  ('The Verge AI', 'https://www.theverge.com/ai-artificial-intelligence', 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', 'rss', 'AI product/tools media', 'US', 'en', 'Technology media RSS feed for AI coverage. Source-provided titles and excerpts only.', true),
+  ('TechCrunch AI', 'https://techcrunch.com/category/artificial-intelligence/', 'https://techcrunch.com/category/artificial-intelligence/feed/', 'rss', 'AI product/tools media', 'US', 'en', 'Technology media RSS feed for AI coverage. Source-provided titles and excerpts only.', true),
+  ('MIT Technology Review AI', 'https://www.technologyreview.com/topic/artificial-intelligence/', 'https://www.technologyreview.com/topic/artificial-intelligence/feed/', 'rss', 'AI product/tools media', 'US', 'en', 'Technology Review AI topic RSS feed. Source-provided titles and excerpts only.', true),
+  ('VentureBeat AI', 'https://venturebeat.com/category/ai/', 'https://venturebeat.com/category/ai/feed', 'rss', 'AI product/tools media', 'US', 'en', 'Technology media RSS feed for AI coverage. Source-provided titles and excerpts only.', true)
+on conflict (feed_url) do update set
+  name = excluded.name,
+  homepage_url = excluded.homepage_url,
+  source_type = excluded.source_type,
+  category = excluded.category,
+  region = excluded.region,
+  language = excluded.language,
+  reliability_note = excluded.reliability_note,
+  is_active = excluded.is_active,
+  updated_at = now();
+
 drop function if exists public.plebi_seed_uuid(text);

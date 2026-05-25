@@ -71,6 +71,14 @@ export default function NewsletterPage() {
                 <GitCompareArrows className="h-4 w-4" />
                 Compare tools
               </TrackableLink>
+              <TrackableLink
+                href="/signals"
+                eventName="nav_link_clicked"
+                eventPayload={{ cta_name: "newsletter_browse_signals", route: "/signals", source_route: "/newsletter", destination_type: "internal" }}
+                className="focus-ring inline-flex h-11 items-center rounded-md border border-border px-4 text-sm font-medium transition hover:border-primary"
+              >
+                Browse latest AI signals
+              </TrackableLink>
             </div>
           </div>
           <div className="rounded-md border border-border bg-background p-4">
