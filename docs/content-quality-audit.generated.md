@@ -7,14 +7,17 @@ Audit date: 2026-05-25
 - Categories checked: 8
 - Tools checked: 43
 - Newsletter issues checked: 3
+- Editorial sources checked: 8
+- Active editorial sources: 8
 - Errors: 0
 - Warnings: 0
-- Info: 9
+- Info: 10
 
 ## Scope
 
 - src/lib/seed.ts
 - src/lib/newsletter/issues.ts
+- src/lib/editorial/sources.ts
 - supabase/seed.sql
 - src/lib/content.ts
 - src/lib/directory-filters.ts
@@ -42,6 +45,7 @@ Audit date: 2026-05-25
 | info | software-application-json-ld | src/lib/seo/structured-data.ts | Tool JSON-LD uses visible name, description, URL, category, and Web operating system only. |
 | info | tools-in-sitemap | src/app/sitemap.ts | /tools remains included in sitemap generation. |
 | info | newsletter-in-sitemap | src/app/sitemap.ts | /newsletter and published newsletter issues are included in sitemap generation. |
+| info | signals-in-sitemap | src/app/sitemap.ts | /signals remains included in sitemap generation. |
 | info | last-verified-sort-fallback | src/lib/directory-filters.ts | Last-verified sorting falls back to 0 for missing dates, keeping sparse seed data sortable. |
 | info | compare-fallback-copy | src/lib/content.ts | Compare and trust helpers include honest fallbacks for sparse pricing and data-caution fields. |
 | info | derived-use-cases | - | Practical use cases and alternatives are currently derived from tool/category context instead of stored as separate fields. |

@@ -88,6 +88,45 @@ create table if not exists public.admin_profiles (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.editorial_sources (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  homepage_url text,
+  feed_url text not null unique,
+  source_type text not null default 'rss' check (source_type in ('rss')),
+  category text,
+  region text,
+  language text,
+  reliability_note text,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.editorial_items (
+  id uuid primary key default gen_random_uuid(),
+  source_id uuid references public.editorial_sources(id) on delete set null,
+  source_name text not null,
+  source_url text,
+  original_url text not null,
+  original_title text not null,
+  original_excerpt text,
+  published_at timestamptz,
+  fetched_at timestamptz not null default now(),
+  content_hash text,
+  category text,
+  region text,
+  language text,
+  status text not null default 'candidate' check (status in ('candidate', 'selected', 'rejected', 'archived')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (original_url)
+);
+
+create index if not exists editorial_items_published_at_idx on public.editorial_items (published_at desc nulls last);
+create index if not exists editorial_items_status_idx on public.editorial_items (status);
+create index if not exists editorial_items_content_hash_idx on public.editorial_items (content_hash);
+
 alter table public.categories enable row level security;
 alter table public.tools enable row level security;
 alter table public.sources enable row level security;
@@ -96,6 +135,8 @@ alter table public.score_snapshots enable row level security;
 alter table public.polls enable row level security;
 alter table public.poll_votes enable row level security;
 alter table public.admin_profiles enable row level security;
+alter table public.editorial_sources enable row level security;
+alter table public.editorial_items enable row level security;
 
 create policy "Public read categories" on public.categories for select using (true);
 create policy "Public read tools" on public.tools for select using (true);
@@ -103,6 +144,9 @@ create policy "Public read sources" on public.sources for select using (true);
 create policy "Public read observations" on public.source_observations for select using (true);
 create policy "Public read score snapshots" on public.score_snapshots for select using (true);
 create policy "Public read polls" on public.polls for select using (true);
+create policy "Public read active editorial sources" on public.editorial_sources for select using (is_active = true);
+create policy "Public read candidate editorial items" on public.editorial_items
+  for select using (status in ('candidate', 'selected'));
 
 create policy "Authenticated users can vote" on public.poll_votes
   for insert to authenticated
