@@ -1,13 +1,23 @@
 import { ArrowRight, BarChart3, ShieldCheck, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { DirectorySearch } from "@/components/directory-search";
+import { JsonLd } from "@/components/json-ld";
 import { ScoreRing } from "@/components/score-ring";
 import { ToolCard } from "@/components/tool-card";
 import { getCategories, getRankedTools } from "@/lib/repository";
 import { scoreFormula } from "@/lib/scoring";
+import { createPageMetadata } from "@/lib/seo/metadata";
+import { createItemListJsonLd } from "@/lib/seo/structured-data";
 import { rankingDisclaimer } from "@/lib/status";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = createPageMetadata({
+  title: "Plebi | AI tools, categories and comparisons",
+  description: "Discover, compare and understand practical AI tools through curated categories, tool pages and clear comparisons.",
+  path: "/",
+  absoluteTitle: true
+});
 
 export default async function HomePage() {
   const [categories, rankedTools] = await Promise.all([getCategories(), getRankedTools()]);
@@ -17,6 +27,18 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-10">
+      <JsonLd
+        data={createItemListJsonLd({
+          name: "Plebi AI tools directory",
+          path: "/",
+          description: "Curated AI tool rankings, categories and decision pages.",
+          items: rankedTools.slice(0, 10).map((tool) => ({
+            name: tool.name,
+            path: `/tools/${tool.slug}`,
+            description: tool.summary
+          }))
+        })}
+      />
       <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="surface rounded-md p-6 sm:p-8 lg:p-10">
           <div className="mb-6 flex flex-wrap gap-2">
