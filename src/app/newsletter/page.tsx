@@ -15,6 +15,8 @@ export const metadata = createPageMetadata({
   path: "/newsletter"
 });
 
+export const dynamic = "force-static";
+
 export default function NewsletterPage() {
   const issues = getPublishedNewsletterIssues();
 

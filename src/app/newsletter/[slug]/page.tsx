@@ -19,6 +19,9 @@ type NewsletterIssuePageProps = {
   params: Promise<{ slug: string }>;
 };
 
+export const dynamic = "force-static";
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
   return getPublishedNewsletterIssues().map((issue) => ({ slug: issue.slug }));
 }

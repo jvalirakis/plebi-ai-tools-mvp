@@ -60,10 +60,20 @@ Start the built app locally and verify:
 - `/categories/image-generation`
 - `/compare`
 - `/tools/google-gemini-image`
+- `/newsletter`
+- `/newsletter/ai-tool-starter-stack`
 - `/sitemap.xml`
 - `/robots.txt`
 
 Each route should return HTTP 200.
+
+After starting the built app locally, you can run:
+
+```bash
+pnpm smoke:routes
+```
+
+Set `SMOKE_BASE_URL` to test a preview or production deployment.
 
 ## Production / Vercel Checklist
 
@@ -86,6 +96,8 @@ Each route should return HTTP 200.
 - `/categories/image-generation` loads.
 - `/tools/google-gemini-image` loads.
 - `/compare` loads.
+- `/newsletter` loads.
+- `/newsletter/ai-tool-starter-stack` loads.
 - `/sitemap.xml` loads and contains public pages.
 - `/robots.txt` loads and points to the sitemap.
 - Canonical URLs use the production domain.
