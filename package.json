@@ -12,6 +12,7 @@
     "audit:content": "node --no-warnings --experimental-strip-types scripts/audit-content-quality.ts",
     "audit:content:write": "node --no-warnings --experimental-strip-types scripts/audit-content-quality.ts --write",
     "analytics:validate": "node --no-warnings --experimental-strip-types scripts/validate-analytics.ts",
+    "smoke:routes": "node --no-warnings --experimental-strip-types scripts/smoke-routes.ts",
     "release:check": "node --no-warnings --experimental-strip-types scripts/release-check.ts"
   },
   "dependencies": {
