@@ -91,7 +91,7 @@ export function DirectorySearch({ categories, rankedTools }: DirectorySearchProp
         <div className="mb-6 grid gap-4">
           <div className="flex items-end justify-between gap-4">
             <h3 className="text-base font-semibold">Matching tools</h3>
-            <p className="text-xs text-muted-foreground">Top matches by current Plebi ranking</p>
+            <p className="text-xs text-muted-foreground">Highest-ranked matches in this dataset</p>
           </div>
           {matchingTools.map((tool) => (
             <ToolCard key={tool.slug} tool={tool} compact />

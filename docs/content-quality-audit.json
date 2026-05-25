@@ -1,0 +1,75 @@
+{
+  "auditDate": "2026-05-24",
+  "scope": [
+    "src/lib/seed.ts",
+    "supabase/seed.sql",
+    "src/lib/content.ts",
+    "src/lib/directory-filters.ts",
+    "src/lib/seo/structured-data.ts",
+    "src/app/sitemap.ts"
+  ],
+  "categoryCount": 8,
+  "toolCount": 43,
+  "counts": {
+    "error": 0,
+    "warning": 0,
+    "info": 8
+  },
+  "pricingTypeCounts": {
+    "free_freemium": 22,
+    "paid": 11,
+    "enterprise": 2,
+    "open_source": 2,
+    "usage_based": 2,
+    "other": 4
+  },
+  "issues": [
+    {
+      "severity": "info",
+      "code": "sql-superlative-copy-safe",
+      "message": "Supabase seed SQL avoids absolute best/#1/guarantee wording in copied summaries.",
+      "target": "supabase/seed.sql"
+    },
+    {
+      "severity": "info",
+      "code": "no-compliance-claims",
+      "message": "No GDPR/compliance-style claims were found in seed content.",
+      "target": "src/lib/seed.ts + supabase/seed.sql"
+    },
+    {
+      "severity": "info",
+      "code": "json-ld-safe-fields",
+      "message": "Structured data avoids fake offers, ratings, and reviews.",
+      "target": "src/lib/seo/structured-data.ts"
+    },
+    {
+      "severity": "info",
+      "code": "software-application-json-ld",
+      "message": "Tool JSON-LD uses visible name, description, URL, category, and Web operating system only.",
+      "target": "src/lib/seo/structured-data.ts"
+    },
+    {
+      "severity": "info",
+      "code": "tools-in-sitemap",
+      "message": "/tools remains included in sitemap generation.",
+      "target": "src/app/sitemap.ts"
+    },
+    {
+      "severity": "info",
+      "code": "last-verified-sort-fallback",
+      "message": "Last-verified sorting falls back to 0 for missing dates, keeping sparse seed data sortable.",
+      "target": "src/lib/directory-filters.ts"
+    },
+    {
+      "severity": "info",
+      "code": "compare-fallback-copy",
+      "message": "Compare and trust helpers include honest fallbacks for sparse pricing and data-caution fields.",
+      "target": "src/lib/content.ts"
+    },
+    {
+      "severity": "info",
+      "code": "derived-use-cases",
+      "message": "Practical use cases and alternatives are currently derived from tool/category context instead of stored as separate fields."
+    }
+  ]
+}
