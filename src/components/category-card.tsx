@@ -1,5 +1,5 @@
 import { ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { TrackableLink } from "@/components/analytics/trackable-link";
 import { CategoryVisual, ToolIdentity } from "@/components/visual-identity";
 import type { Category, Tool } from "@/lib/types";
 
@@ -11,8 +11,10 @@ type CategoryCardProps = Category & {
 
 export function CategoryCard({ slug, name, description, subcategories, signal, toolCount, topTool, topScore }: CategoryCardProps) {
   return (
-    <Link
+    <TrackableLink
       href={`/categories/${slug}`}
+      eventName="category_opened"
+      eventPayload={{ category_slug: slug, route: `/categories/${slug}` }}
       className="surface group flex h-full flex-col rounded-md p-5 transition duration-200 hover:-translate-y-0.5 hover:border-primary/70 hover:shadow-lg hover:shadow-black/5"
     >
       <div className="mb-5 flex items-start justify-between gap-4">
@@ -58,6 +60,6 @@ export function CategoryCard({ slug, name, description, subcategories, signal, t
         </div>
         <p className="text-xs leading-5 text-muted-foreground">{signal}</p>
       </div>
-    </Link>
+    </TrackableLink>
   );
 }

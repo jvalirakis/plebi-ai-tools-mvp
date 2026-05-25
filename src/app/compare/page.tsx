@@ -1,10 +1,15 @@
-import type { Metadata } from "next";
+import { AnalyticsPageEvent } from "@/components/analytics/analytics-page-event";
+import { TrackableLink } from "@/components/analytics/trackable-link";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { CompareWorkbench } from "@/components/compare-workbench";
 import { getCategories, getTools } from "@/lib/repository";
+import { createPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
-  title: "Compare AI Tools | Plebi"
-};
+export const metadata = createPageMetadata({
+  title: "Compare AI Tools",
+  description: "Compare AI tools side by side across Plebi Score inputs, pricing, fit, freshness and source-backed confidence.",
+  path: "/compare"
+});
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +18,8 @@ export default async function ComparePage() {
 
   return (
     <div className="space-y-7">
+      <AnalyticsPageEvent eventName="compare_opened" payload={{ route: "/compare", result_count: tools.length }} />
+      <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Compare" }]} />
       <section className="surface rounded-md p-6 sm:p-8 lg:p-10">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -21,6 +28,27 @@ export default async function ComparePage() {
             <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">
               Evaluate leaders side by side across Plebi Score inputs, pricing, fit, and source-backed confidence.
             </p>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
+              Start from a category shortlist or the full tools directory, then compare up to four options before deciding what to trial.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <TrackableLink
+                href="/tools"
+                eventName="nav_link_clicked"
+                eventPayload={{ cta_name: "compare_browse_all_tools", route: "/tools", source_route: "/compare", destination_type: "internal" }}
+                className="focus-ring inline-flex h-10 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+              >
+                Browse all tools
+              </TrackableLink>
+              <TrackableLink
+                href="/#categories"
+                eventName="nav_link_clicked"
+                eventPayload={{ cta_name: "compare_explore_categories", route: "/", source_route: "/compare", destination_type: "internal" }}
+                className="focus-ring inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-medium transition hover:border-primary"
+              >
+                Explore categories
+              </TrackableLink>
+            </div>
           </div>
           <div className="rounded-md border border-border bg-background px-4 py-3">
             <p className="text-xs text-muted-foreground">Available tools</p>

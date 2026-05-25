@@ -1,18 +1,22 @@
 import { ArrowUpRight } from "lucide-react";
-import Link from "next/link";
+import { TrackableLink } from "@/components/analytics/trackable-link";
 import { MetricBars } from "@/components/metric-bars";
 import { ScoreRing } from "@/components/score-ring";
 import { StatusBadge, ToolIdentity } from "@/components/visual-identity";
+import { formatCategoryLabel, getPricingTypeSummary } from "@/lib/content";
 import { getConfidenceLevel, getRankExplanation, getScoreBreakdown } from "@/lib/scoring";
+import type { AnalyticsEventName } from "@/lib/analytics/events";
 import type { Tool } from "@/lib/types";
 
 type ToolCardProps = {
   tool: Tool;
   rank?: number;
   compact?: boolean;
+  analyticsEventName?: AnalyticsEventName;
+  analyticsSourceRoute?: string;
 };
 
-export function ToolCard({ tool, rank, compact = false }: ToolCardProps) {
+export function ToolCard({ tool, rank, compact = false, analyticsEventName = "tool_card_clicked", analyticsSourceRoute }: ToolCardProps) {
   const breakdown = getScoreBreakdown(tool);
   const confidence = getConfidenceLevel(tool);
 
@@ -22,8 +26,10 @@ export function ToolCard({ tool, rank, compact = false }: ToolCardProps) {
         <div className="min-w-0">
           <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
             {rank ? <span className="chip rounded-md px-2 py-1 font-mono text-xs">#{rank}</span> : null}
+            <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{formatCategoryLabel(tool.categorySlug)}</span>
             <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{tool.subcategory}</span>
             <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{tool.stage}</span>
+            <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{getPricingTypeSummary(tool.pricing)}</span>
             <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">
               Confidence {confidence}%
             </span>
@@ -33,16 +39,27 @@ export function ToolCard({ tool, rank, compact = false }: ToolCardProps) {
           <div className="flex items-start gap-3">
             <ToolIdentity tool={tool} size={compact ? "sm" : "md"} />
             <div className="min-w-0">
-              <Link href={`/tools/${tool.slug}`} className="group inline-flex items-center gap-2">
+              <TrackableLink
+                href={`/tools/${tool.slug}`}
+                eventName={analyticsEventName}
+                eventPayload={{
+                  tool_slug: tool.slug,
+                  category_slug: tool.categorySlug,
+                  route: `/tools/${tool.slug}`,
+                  source_route: analyticsSourceRoute
+                }}
+                className="group inline-flex items-center gap-2"
+              >
                 <h3 className="text-xl font-semibold">{tool.name}</h3>
                 <ArrowUpRight className="h-4 w-4 text-muted-foreground transition group-hover:text-primary" />
-              </Link>
+              </TrackableLink>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{tool.tagline}</p>
             </div>
           </div>
           <div className="mt-4 max-w-3xl rounded-md border border-border bg-background px-3 py-2">
             <p className="text-xs font-medium uppercase text-muted-foreground">Best for</p>
             <p className="mt-1 text-sm leading-6">{tool.bestFor}</p>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">Pricing note: {tool.pricing || "No pricing note available yet."}</p>
           </div>
           {!compact ? (
             <p className="mt-3 max-w-3xl rounded-md border border-border bg-background p-3 text-sm leading-6 text-muted-foreground">
