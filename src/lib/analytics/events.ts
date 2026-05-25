@@ -12,7 +12,13 @@ export const analyticsEventNames = [
   "breadcrumb_clicked",
   "nav_link_clicked",
   "empty_state_action_clicked",
-  "external_link_clicked"
+  "external_link_clicked",
+  "newsletter_archive_opened",
+  "newsletter_issue_card_clicked",
+  "newsletter_issue_viewed",
+  "newsletter_tool_link_clicked",
+  "newsletter_category_link_clicked",
+  "newsletter_signup_placeholder_clicked"
 ] as const;
 
 export type AnalyticsEventName = (typeof analyticsEventNames)[number];
@@ -20,6 +26,7 @@ export type AnalyticsEventName = (typeof analyticsEventNames)[number];
 export type AnalyticsPayload = Partial<{
   tool_slug: string;
   category_slug: string;
+  issue_slug: string;
   route: string;
   filter_name: string;
   filter_value: string;
@@ -37,6 +44,7 @@ const eventNameSet = new Set<string>(analyticsEventNames);
 const allowedPayloadFields: PayloadField[] = [
   "tool_slug",
   "category_slug",
+  "issue_slug",
   "route",
   "filter_name",
   "filter_value",
@@ -48,7 +56,7 @@ const allowedPayloadFields: PayloadField[] = [
   "source_route"
 ];
 const routeFields = new Set<PayloadField>(["route", "source_route"]);
-const slugFields = new Set<PayloadField>(["tool_slug", "category_slug"]);
+const slugFields = new Set<PayloadField>(["tool_slug", "category_slug", "issue_slug"]);
 const safeValuePattern = /[^a-zA-Z0-9 _./:#-]/g;
 
 export function isAnalyticsEventName(value: string): value is AnalyticsEventName {

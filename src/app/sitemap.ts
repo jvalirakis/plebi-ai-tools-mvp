@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { getPublishedNewsletterIssues } from "@/lib/newsletter/issues";
 import { getCategoryRecords, getToolRecords } from "@/lib/repository";
 import { absoluteUrl } from "@/lib/seo/metadata";
 import type { Tool } from "@/lib/types";
@@ -44,6 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [categories, tools] = await Promise.all([getCategoryRecords(), getToolRecords()]);
   const publicCategories = categories.filter((category) => isSafeSlug(category.slug));
   const publicTools = tools.filter((tool) => isSafeSlug(tool.slug));
+  const publicNewsletterIssues = getPublishedNewsletterIssues().filter((issue) => isSafeSlug(issue.slug));
 
   return [
     {
@@ -64,6 +66,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.9
     },
+    {
+      url: absoluteUrl("/newsletter"),
+      lastModified: latestDate(publicNewsletterIssues.map((issue) => toValidDate(issue.issueDate)), generatedAt),
+      changeFrequency: "weekly",
+      priority: 0.7
+    },
     ...publicCategories.map((category) => {
       const categoryTools = publicTools.filter((tool) => tool.categorySlug === category.slug);
 
@@ -79,6 +87,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: getToolLastModified(tool, generatedAt),
       changeFrequency: "weekly" as const,
       priority: 0.7
+    })),
+    ...publicNewsletterIssues.map((issue) => ({
+      url: absoluteUrl(`/newsletter/${issue.slug}`),
+      lastModified: toValidDate(issue.issueDate) ?? generatedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.6
     }))
   ];
 }

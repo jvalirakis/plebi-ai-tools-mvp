@@ -1,4 +1,4 @@
-import { BarChart3, Database, GitCompareArrows, Layers3, Search } from "lucide-react";
+import { BarChart3, Database, GitCompareArrows, Layers3, Newspaper, Search } from "lucide-react";
 import { TrackableLink } from "@/components/analytics/trackable-link";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -6,6 +6,7 @@ const navigation = [
   { href: "/", label: "Home", icon: Database },
   { href: "/tools", label: "Tools", icon: Search },
   { href: "/#categories", label: "Categories", icon: Layers3 },
+  { href: "/newsletter", label: "Brief", icon: Newspaper },
   { href: "/compare", label: "Compare", icon: GitCompareArrows }
 ];
 
