@@ -94,9 +94,14 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         </div>
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
           <div>
-            <Link href="/" className="text-sm text-primary">
-              Directory
-            </Link>
+            <div className="flex flex-wrap gap-3 text-sm">
+              <Link href="/" className="text-primary">
+                Directory
+              </Link>
+              <Link href="/tools" className="text-primary">
+                All tools
+              </Link>
+            </div>
             <div className="mt-3 flex items-center gap-4">
               <CategoryVisual category={category} size="lg" />
               <h1 className="text-4xl font-semibold sm:text-5xl">{category.name}</h1>

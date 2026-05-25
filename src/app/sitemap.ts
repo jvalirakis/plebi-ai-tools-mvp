@@ -58,6 +58,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.8
     },
+    {
+      url: absoluteUrl("/tools"),
+      lastModified: latestDate(publicTools.map((tool) => getToolLastModified(tool, generatedAt)), generatedAt),
+      changeFrequency: "weekly",
+      priority: 0.9
+    },
     ...publicCategories.map((category) => {
       const categoryTools = publicTools.filter((tool) => tool.categorySlug === category.slug);
 
