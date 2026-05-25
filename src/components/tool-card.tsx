@@ -17,7 +17,7 @@ export function ToolCard({ tool, rank, compact = false }: ToolCardProps) {
   const confidence = getConfidenceLevel(tool);
 
   return (
-    <article className="surface rounded-md p-5 transition hover:border-primary/70">
+    <article className="surface rounded-md p-5 transition duration-200 hover:-translate-y-0.5 hover:border-primary/70 hover:shadow-lg hover:shadow-black/5">
       <div className="grid gap-5 md:grid-cols-[1fr_auto]">
         <div className="min-w-0">
           <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
