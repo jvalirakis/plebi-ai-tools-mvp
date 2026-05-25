@@ -3,6 +3,7 @@ import Link from "next/link";
 import { MetricBars } from "@/components/metric-bars";
 import { ScoreRing } from "@/components/score-ring";
 import { StatusBadge, ToolIdentity } from "@/components/visual-identity";
+import { formatCategoryLabel, getPricingTypeSummary } from "@/lib/content";
 import { getConfidenceLevel, getRankExplanation, getScoreBreakdown } from "@/lib/scoring";
 import type { Tool } from "@/lib/types";
 
@@ -22,8 +23,10 @@ export function ToolCard({ tool, rank, compact = false }: ToolCardProps) {
         <div className="min-w-0">
           <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
             {rank ? <span className="chip rounded-md px-2 py-1 font-mono text-xs">#{rank}</span> : null}
+            <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{formatCategoryLabel(tool.categorySlug)}</span>
             <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{tool.subcategory}</span>
             <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{tool.stage}</span>
+            <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">{getPricingTypeSummary(tool.pricing)}</span>
             <span className="chip rounded-md px-2 py-1 text-xs text-muted-foreground">
               Confidence {confidence}%
             </span>
@@ -43,6 +46,7 @@ export function ToolCard({ tool, rank, compact = false }: ToolCardProps) {
           <div className="mt-4 max-w-3xl rounded-md border border-border bg-background px-3 py-2">
             <p className="text-xs font-medium uppercase text-muted-foreground">Best for</p>
             <p className="mt-1 text-sm leading-6">{tool.bestFor}</p>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">Pricing note: {tool.pricing || "No pricing note available yet."}</p>
           </div>
           {!compact ? (
             <p className="mt-3 max-w-3xl rounded-md border border-border bg-background p-3 text-sm leading-6 text-muted-foreground">

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { CategoryRankings } from "@/components/category-rankings";
 import { JsonLd } from "@/components/json-ld";
 import { CategoryVisual, StatusBadge, ToolIdentity } from "@/components/visual-identity";
+import { getCategoryDecisionContent } from "@/lib/content";
 import { getCategories, getCategoryBySlug, getRankedTools } from "@/lib/repository";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { createItemListJsonLd } from "@/lib/seo/structured-data";
@@ -57,6 +58,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   const rankedTools = await getRankedTools(category.slug);
   const refreshLabel = getCategoryRefreshLabel(rankedTools);
+  const categoryContent = getCategoryDecisionContent(category);
   const categoryLabels = [
     { label: "Best overall", tool: rankedTools[0] },
     { label: "Best value", tool: pickBy(rankedTools, (tool) => tool.metrics.value) },
@@ -99,7 +101,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               <CategoryVisual category={category} size="lg" />
               <h1 className="text-4xl font-semibold sm:text-5xl">{category.name}</h1>
             </div>
-            <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">{category.description}</p>
+            <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">{categoryContent.intro}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <p className="inline-flex rounded-md border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
                 Last refreshed: {refreshLabel}
@@ -115,6 +117,36 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             <p className="mt-4 text-xs text-muted-foreground">Benchmark emphasis</p>
             <p className="mt-2 text-sm leading-6">{category.benchmark}</p>
           </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-3">
+        <div className="surface rounded-md p-5">
+          <p className="text-xs font-medium uppercase text-muted-foreground">Useful for</p>
+          <h2 className="mt-2 text-xl font-semibold">Category fit</h2>
+          <ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground">
+            {categoryContent.usefulFor.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="surface rounded-md p-5">
+          <p className="text-xs font-medium uppercase text-muted-foreground">Common use cases</p>
+          <h2 className="mt-2 text-xl font-semibold">What to compare</h2>
+          <ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground">
+            {categoryContent.commonUseCases.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="surface rounded-md p-5">
+          <p className="text-xs font-medium uppercase text-muted-foreground">How to choose</p>
+          <h2 className="mt-2 text-xl font-semibold">Decision guidance</h2>
+          <ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground">
+            {categoryContent.howToChoose.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
         </div>
       </section>
 
